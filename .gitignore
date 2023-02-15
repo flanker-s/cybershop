@@ -1,1 +1,4 @@
-.idea
+/.idea
+/.vscode
+/db
+/.env

@@ -12,10 +12,12 @@ services:
       NODE_ENV: ${NODE_ENV}
       #####################
     ports:
-      - 3000:3000
+      - 3001:3000
     volumes:
       - ./frontend:/usr/src/react
       - /usr/src/react/node_modules
+    depends_on:
+      - node
     networks:
       - app
   # BACKEND
@@ -27,34 +29,50 @@ services:
     environment:
       #####################
       NODE_ENV: ${NODE_ENV}
-      MONGODB_URL: ${ME_CONFIG_MONGODB_URL}
-      MONGODB_ADMINUSERNAME: ${ME_CONFIG_MONGODB_ADMINUSERNAME}
-      MONGODB_ADMINPASSWORD: ${ME_CONFIG_MONGODB_ADMINPASSWORD}
+      NODE_PORT: ${NODE_PORT}
+      MONGODB_URL: mongodb://${DB_ROOT_USERNAME}:${DB_ROOT_PASSWORD}@mongo:27017/
+      DATABASE: ${DATABASE}
       #####################
     ports:
-      - 4000:4000
+      - ${NODE_PORT}:${NODE_PORT}
     volumes:
       - ./backend:/usr/src/node
       - /usr/src/node/node_modules
+    depends_on:
+      - mongo
     networks:
       - app
   # DATABASE
-  mongodb:
+  mongo:
     container_name: mongo
     image: mongo:6.0.4
     restart: always
     environment:
       #####################
-      ME_CONFIG_MONGODB_ADMINUSERNAME: ${ME_CONFIG_MONGODB_ADMINUSERNAME}
-      ME_CONFIG_MONGODB_ADMINPASSWORD: ${ME_CONFIG_MONGODB_ADMINPASSWORD}
-      ME_CONFIG_MONGODB_URL: ${ME_CONFIG_MONGODB_URL}
+      MONGO_INITDB_ROOT_USERNAME: ${DB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${DATABASE}
       #####################
     ports:
-    - 8081:8081
+      - 27017:27017
     volumes:
       - ./db:/data/db
     networks:
       - app
+    
+  # mongo-express:
+  #   image: mongo-express
+  #   restart: always
+  #   ports:
+  #     - 8081:8081
+  #   environment:
+  #     ME_CONFIG_MONGODB_ADMINUSERNAME: root
+  #     ME_CONFIG_MONGODB_ADMINPASSWORD: example
+  #     ME_CONFIG_MONGODB_URL: mongodb://${DB_ROOT_USERNAME}:${DB_ROOT_PASSWORD}@mongo:27017/
+  #   depends_on:
+  #     - mongo
+  #   networks:
+  #     - app
 
 networks:
   app:
