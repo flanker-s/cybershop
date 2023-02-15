@@ -1,0 +1,60 @@
+version: '3.7'
+
+services:
+  # FRONTEND
+  react:
+    container_name: react
+    build:
+      context: ./frontend
+      dockerfile: docker/dockerfile
+    environment:
+      #####################
+      NODE_ENV: ${NODE_ENV}
+      #####################
+    ports:
+      - 3000:3000
+    volumes:
+      - ./frontend:/usr/src/react
+      - /usr/src/react/node_modules
+    networks:
+      - app
+  # BACKEND
+  node:
+    container_name: node
+    build:
+      context: ./backend
+      dockerfile: docker/dockerfile
+    environment:
+      #####################
+      NODE_ENV: ${NODE_ENV}
+      MONGODB_URL: ${ME_CONFIG_MONGODB_URL}
+      MONGODB_ADMINUSERNAME: ${ME_CONFIG_MONGODB_ADMINUSERNAME}
+      MONGODB_ADMINPASSWORD: ${ME_CONFIG_MONGODB_ADMINPASSWORD}
+      #####################
+    ports:
+      - 4000:4000
+    volumes:
+      - ./backend:/usr/src/node
+      - /usr/src/node/node_modules
+    networks:
+      - app
+  # DATABASE
+  mongodb:
+    container_name: mongo
+    image: mongo:6.0.4
+    restart: always
+    environment:
+      #####################
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${ME_CONFIG_MONGODB_ADMINUSERNAME}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${ME_CONFIG_MONGODB_ADMINPASSWORD}
+      ME_CONFIG_MONGODB_URL: ${ME_CONFIG_MONGODB_URL}
+      #####################
+    ports:
+    - 8081:8081
+    volumes:
+      - ./db:/data/db
+    networks:
+      - app
+
+networks:
+  app:
