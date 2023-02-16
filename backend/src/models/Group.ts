@@ -1,13 +1,13 @@
 import mongoose, { Document, Schema } from "mongoose";
 
-export interface IRole {
+export interface IGroup {
     name: string,
     priority: number
 }
 
-export interface IRoleModel extends IRole, Document {}
+export interface IGroupModel extends IGroup, Document {}
 
-const RoleSchema: Schema = new Schema(
+const GroupSchema: Schema = new Schema(
 {
     name: { type: String, required: true, unique: true },
     priority: { type: Number, required: true, min: 1, max: 30 }
@@ -16,4 +16,4 @@ const RoleSchema: Schema = new Schema(
     versionKey: false, timestamps: true 
 });
 
-export default mongoose.model<IRoleModel>('Role', RoleSchema);
+export default mongoose.model<IGroupModel>('Group', GroupSchema);
