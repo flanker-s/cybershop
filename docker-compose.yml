@@ -30,7 +30,7 @@ services:
       #####################
       NODE_ENV: ${NODE_ENV}
       NODE_PORT: ${NODE_PORT}
-      MONGODB_URL: mongodb://${DB_ROOT_USERNAME}:${DB_ROOT_PASSWORD}@mongo:27017/
+      MONGODB_URL: mongodb://${DB_ADMIN_USERNAME}:${DB_ADMIN_PASSWORD}@mongo:27017/${DATABASE}
       DATABASE: ${DATABASE}
       #####################
     ports:
@@ -52,11 +52,15 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ${DB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MONGO_INITDB_DATABASE: ${DATABASE}
+      MONGO_INITDB_USERNAME: ${DB_ADMIN_USERNAME}
+      MONGO_INITDB_PASSWORD: ${DB_ADMIN_PASSWORD}
+
       #####################
     ports:
       - 27017:27017
     volumes:
-      - ./db:/data/db
+      - ./mongodb/data/db:/data/db
+      - ./mongodb/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
     networks:
       - app
     
