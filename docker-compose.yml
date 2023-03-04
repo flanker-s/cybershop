@@ -32,6 +32,8 @@ services:
       NODE_PORT: ${NODE_PORT}
       MONGODB_URL: mongodb://${DB_ADMIN_USERNAME}:${DB_ADMIN_PASSWORD}@mongo:27017/${DATABASE}
       DATABASE: ${DATABASE}
+      SHOP_ADMIN_NAME: ${SHOP_ADMIN_NAME}
+      SHOP_ADMIN_PASSWORD: ${SHOP_ADMIN_PASSWORD}
       #####################
     ports:
       - ${NODE_PORT}:${NODE_PORT}
