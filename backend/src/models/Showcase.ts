@@ -10,8 +10,8 @@ export interface IShowcaseModel extends IShowcase, Document {}
 
 const ShowcaseSchema: Schema = new Schema(
 {
-    name: { type: String, required: true },
-    template: { type: String, required: true },
+    name: { type: String, required: true, unique: true },
+    template: { type: String },
     productIds: [
         { type: Schema.Types.ObjectId, ref: "Product" }
     ],

@@ -8,7 +8,7 @@ export interface IDeliveryMethodModel extends IDeliveryMethod, Document {}
 
 const DeliveryMethodSchema: Schema = new Schema(
 {
-    name: { type: String, require: true }
+    name: { type: String, require: true, unique: true }
 }, 
 { 
     collection: "deliveryMethods", versionKey: false, timestamps: true 

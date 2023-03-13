@@ -1,8 +1,12 @@
 import mongoose, { Document, Schema } from "mongoose";
+import bcrypt from "bcrypt";
 
 export interface IUser {
     name: string,
     password: string,
+    email: string,
+    phone: string,
+    address: string,
     isActivated: boolean,
     activationLink: string,
     avatar: string,
@@ -23,6 +27,9 @@ const UserSchema: Schema = new Schema(
 {
     name: { type: String, required: true, unique: true },
     password: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    phone: { type: String, unique: true },
+    address: { type: String },
     isActivated: { type: Boolean, default: false },
     activationLink: { type: String },
     avatar: { type: String },
@@ -39,5 +46,19 @@ const UserSchema: Schema = new Schema(
 {
     collection: "users", versionKey: false, timestamps: true
 });
+
+UserSchema.pre('save', function (next) {
+    const user = this;
+    if (!user.isModified('password')) {
+      return next();
+    }
+    bcrypt.hash(user.password, 10, function (err, hash) {
+      if (err) {
+        return next(err);
+      }
+      user.password = hash;
+      next();
+    });
+  });
 
 export default mongoose.model<IUserModel>('User', UserSchema);

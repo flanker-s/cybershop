@@ -4,6 +4,7 @@ import http from "http";
 import mongoose from "mongoose";
 import {config} from "./config/config.js"
 import Logging from "./library/Logging.js";
+import seedDB from "./seed/mainSeeder.js";
 
 const router = express();
 
@@ -11,6 +12,7 @@ mongoose.set('strictQuery', false)
 mongoose.connect(config.mongo.url, {w: "majority", retryWrites: true})
 .then(()=>{
     Logging.info("mongo connection success");
+    seedDB(process.env.NODE_ENV || "production");
     StartServer(); 
 })
 .catch((error)=>Logging.error(error));

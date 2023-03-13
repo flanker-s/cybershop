@@ -8,7 +8,7 @@ export interface IPaymentMethodModel extends IPaymentMethod, Document {}
 
 const PaymentMethodSchema: Schema = new Schema(
 {
-    name: { type: String, require: true }
+    name: { type: String, require: true, unique: true }
 }, 
 { 
     collection: "paymentMethods", versionKey: false, timestamps: true 

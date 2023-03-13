@@ -7,6 +7,7 @@ export interface IProduct {
     price: number,
     status: string,
     description: string,
+    categoryId: Schema.Types.ObjectId,
     color: string,
     values:[{
         attributeId: Schema.Types.ObjectId,
@@ -30,7 +31,8 @@ const ProductSchema: Schema = new Schema(
     price: { type: Schema.Types.Decimal128, required: true },
     status: { type: String, required: true, enum: ["In stock", "On order", "Out of stock"] },
     description: { type: String, required: true },
-    color: { type: Schema.Types.ObjectId, ref: "ValueType" ,required: true },
+    colorId: { type: Schema.Types.ObjectId, ref: "ValueType.values" },
+    categoryId: { type: Schema.Types.ObjectId, ref: "Category"},
     values:[{
         attributeId: { type: Schema.Types.ObjectId, ref: "Category.features.attributes._id" },
         value: { type: Schema.Types.Mixed }

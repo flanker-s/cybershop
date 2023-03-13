@@ -8,7 +8,7 @@ export interface IRoleModel extends IRole, Document {}
 
 const RoleSchema: Schema = new Schema(
 {
-    name: { type: String, required: true },
+    name: { type: String, required: true, unique: true },
 }, 
 { 
     collection: "roles", versionKey: false, timestamps: true 

@@ -9,7 +9,7 @@ export interface ILogModel extends ILog, Document {}
 
 const LogSchema: Schema = new Schema(
 {
-    level: { type: String, required: true },
+    level: { type: String, required: true, enum: ["info", "error"] },
     message: { type: String, required: true },
     metadata: { type: Object }
 }, 

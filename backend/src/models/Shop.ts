@@ -13,7 +13,7 @@ export interface IShopModel extends IShop, Document {}
 
 const ShopSchema: Schema = new Schema(
 {
-    name: { type: String, required: true },
+    name: { type: String, required: true, unique: true },
     daysOfWork: [{
         name: { type: String, required: true },
         hours: { type: String },
