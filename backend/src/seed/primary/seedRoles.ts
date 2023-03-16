@@ -1,9 +1,9 @@
-import log from "../../log/logger.js";
+import Logging from "../../library/Logging.js";
 import Role from "../../models/Role.js";
 
 export default async function seedRoles() : Promise<void> {
     try {
-        await log("info", "Seeding roles");
+        Logging.info("Seeding roles");
         await Role.deleteMany({});
         const roleNames = ["admin", "analytist", "contentManager", "shiper", "support", "customer"];
         for (let i = 0; i < roleNames.length; i++) {
@@ -12,7 +12,7 @@ export default async function seedRoles() : Promise<void> {
             })
         }
     } catch (err) {
-        log("error", err);
+        Logging.error(err);
         throw err;
     }
 }

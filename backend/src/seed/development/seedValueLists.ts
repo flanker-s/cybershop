@@ -1,7 +1,7 @@
 import ValueList from "../../models/ValueList.js";
 import mongoose from "mongoose";
 import { faker } from "@faker-js/faker";
-import log from "../../log/logger.js";
+import Logging from "../../library/Logging.js";
 
 interface IValue {
     _id: mongoose.Types.ObjectId,
@@ -10,7 +10,7 @@ interface IValue {
 
 export default async function seedValueLists(listCount: number, valueCount: number): Promise<void> {
     try {
-        await log("info", "Seeding value lists");
+        Logging.info("Seeding value lists");
         for (let i = 0; i < listCount; i++) {
             const values: IValue[] = [];
             for (let j = 0; j < valueCount; j++) {
@@ -25,7 +25,7 @@ export default async function seedValueLists(listCount: number, valueCount: numb
             });
         }
     } catch (err) {
-        await log("error", err);
+        Logging.error(err);
         throw err;
     }
 }

@@ -1,11 +1,11 @@
 import { faker } from "@faker-js/faker";
-import log from "../../log/logger.js";
+import Logging from "../../library/Logging.js";
 import Product from "../../models/Product.js";
 import Showcase from "../../models/Showcase.js";
 
 export default async function seedShowcase(count: number) : Promise<void> {
     try {
-        await log("info", "Seeding showcases");
+        Logging.info("Seeding showcases");
         Showcase.collection.drop();
         const productIds = (await Product.find({}).select('_id')).map(product => product._id);
         if(productIds.length === 0) {
@@ -21,7 +21,7 @@ export default async function seedShowcase(count: number) : Promise<void> {
             })
         }
     } catch (err) {
-        await log("error", err);
+        Logging.error(err);
         throw err;
     }
 }

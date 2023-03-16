@@ -2,15 +2,15 @@ import Category from "../../models/Category.js";
 import { faker } from "@faker-js/faker";
 import mongoose from "mongoose";
 import ValueList, { IValueListModel } from "../../models/ValueList.js";
-import log from "../../log/logger.js";
+import Logging from "../../library/Logging.js";
 
 export default async function seedCategories(tree: {[key: string] : any}): Promise<void> {
     try {
-        await log("info", "Seeding categories");
+        Logging.info("Seeding categories");
         Category.collection.drop();
         await createCategoriesRecursive(tree, null);
     } catch (err) {
-        await log("error", err);
+        Logging.error(err);
         throw err;
     }
 }
@@ -21,7 +21,7 @@ async function createCategoriesRecursive(node: {[key: string] : any}, parentId: 
             if( ! node.hasOwnProperty(key)) {
                 return;
             }
-            await log("info", `Seeding categories... ${key}`);
+            Logging.info(`Seeding categories... ${key}`);
             const valueLists : IValueListModel[] = await ValueList.find({});
             const valueList = valueLists[Math.floor(Math.random() * valueLists.length)];
             const category = await Category.create({
@@ -58,7 +58,7 @@ async function createCategoriesRecursive(node: {[key: string] : any}, parentId: 
             });
             await createCategoriesRecursive(node[key], category._id);
         } catch (err) {
-            await log("error", err);
+            Logging.error(err);
             throw err;
         }
     }

@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
 import { Schema } from "mongoose";
-import log from "../../log/logger.js";
+import Logging from "../../library/Logging.js";
 import Category, { ICategoryModel } from "../../models/Category.js";
 import Product from "../../models/Product.js";
 import User from "../../models/User.js";
@@ -13,7 +13,7 @@ interface IProductValue {
 
 export default async function seedProducts(count: number): Promise<void> {
     try {
-        await log("info", "Seeding products");
+        Logging.info("Seeding products");
         Product.collection.drop();
         for (let i = 0; i < count; i++) {
             const statuses = ["In stock", "On order", "Out of stock"];
@@ -42,7 +42,7 @@ export default async function seedProducts(count: number): Promise<void> {
             });
         }
     } catch (err) {
-        await log("error", err);
+        Logging.error(err);
         throw err;
     }
 }

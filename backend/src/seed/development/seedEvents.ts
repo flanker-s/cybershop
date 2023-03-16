@@ -1,10 +1,10 @@
 import Event from "../../models/Event.js"
 import { faker } from "@faker-js/faker";
-import log from "../../log/logger.js";
+import Logging from "../../library/Logging.js";
 
 export default async function seedEvents(count: number) : Promise<void> {
     try {
-        await log("info", "Seeding events");
+        Logging.info("Seeding events");
         Event.collection.drop();
         for (let i = 0; i < count; i++) {
             await Event.create({
@@ -14,7 +14,7 @@ export default async function seedEvents(count: number) : Promise<void> {
             })
         }
     } catch (err) {
-        await log("error", err);
+        Logging.error(err);
         throw err;
     }
 }

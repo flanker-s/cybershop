@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
 import mongoose from "mongoose";
-import log from "../../log/logger.js";
+import Logging from "../../library/Logging.js";
 import Chat from "../../models/Chat.js";
 import User, { IUserModel } from "../../models/User.js";
 
@@ -11,7 +11,7 @@ interface IMessage {
 
 export default async function seedChats(chatsCount: number, messagesCount: number) : Promise<void> {
     try {
-        await log("info", "Seeding chats");
+        Logging.info("Seeding chats");
         Chat.collection.drop();
         for (let i = 0; i < chatsCount; i++) {
             const users : IUserModel[] = await User.find({});
@@ -27,7 +27,7 @@ export default async function seedChats(chatsCount: number, messagesCount: numbe
             });
         }
     } catch (err) {
-        await log("error", err);
+        Logging.error(err);
         throw err;
     }
 }

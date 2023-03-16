@@ -1,10 +1,10 @@
 import { faker } from "@faker-js/faker";
-import log from "../../log/logger.js";
+import Logging from "../../library/Logging.js";
 import Log from "../../models/Log.js";
 
 export default async function seedLogs(count: number) : Promise<void> {
     try {
-        await log("info", "Seeding logs");
+        Logging.info("Seeding logs");
         Log.collection.drop();
         const levels = ["error", "info"];
         for (let i = 0; i < count; i++) {
@@ -14,7 +14,7 @@ export default async function seedLogs(count: number) : Promise<void> {
             })
         }
     } catch (err) {
-        await log("error", err);
+        Logging.error(err);
         throw err;
     }
 }

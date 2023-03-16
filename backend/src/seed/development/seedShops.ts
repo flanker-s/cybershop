@@ -1,10 +1,10 @@
 import { faker } from "@faker-js/faker";
-import log from "../../log/logger.js";
+import Logging from "../../library/Logging.js";
 import Shop from "../../models/Shop.js";
 
 export default async function seedShops(count: number) : Promise<void> {
     try {
-        await log("info", "Seeding shops");
+        Logging.info("Seeding shops");
         Shop.collection.drop();
         const daysOfWeek = [
             "Sunday", 
@@ -31,7 +31,7 @@ export default async function seedShops(count: number) : Promise<void> {
             })
         }
     } catch (err) {
-        await log("error", err);
+        Logging.error(err);
         throw err;
     }
 }

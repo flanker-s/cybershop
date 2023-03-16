@@ -1,11 +1,11 @@
 import Role, { IRoleModel } from "../../models/Role.js";
 import User from "../../models/User.js";
 import { faker } from "@faker-js/faker";
-import log from "../../log/logger.js";
+import Logging from "../../library/Logging.js";
 
 export default async function seedUsers(count: number): Promise<void> {
     try {
-      await log("info", "Seeding users");
+      Logging.info("Seeding users");
       User.collection.drop();
       const roles: IRoleModel[] = await Role.find({});
       if (roles.length !== 0) {
@@ -23,7 +23,7 @@ export default async function seedUsers(count: number): Promise<void> {
         }
       }
     } catch (err) {
-      await log("error", err);
+      Logging.error(err);
       throw err;
     }
   }

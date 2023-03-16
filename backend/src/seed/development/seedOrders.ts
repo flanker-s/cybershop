@@ -1,4 +1,4 @@
-import log from "../../log/logger.js";
+import Logging from "../../library/Logging.js";
 import DeliveryMethod from "../../models/DeliveryMethod.js";
 import Order from "../../models/Order.js";
 import PaymentMethod from "../../models/PaymentMethod.js";
@@ -7,7 +7,7 @@ import User from "../../models/User.js";
 
 export default async function seedOrders(count: number) : Promise<void> {
     try {
-        await log("info", "Seeding orders");
+        Logging.info("Seeding orders");
         Order.collection.drop();
         const users =await User.find({});
         if (users.length === 0) {
@@ -51,7 +51,7 @@ export default async function seedOrders(count: number) : Promise<void> {
             });
         }
     } catch (err) {
-        await log("error", err);
+        Logging.error(err);
         throw err;
     }
 }

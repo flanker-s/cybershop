@@ -1,10 +1,10 @@
 import Article from "../../models/Article.js";
 import { faker } from "@faker-js/faker";
-import log from "../../log/logger.js";
+import Logging from "../../library/Logging.js";
 
 export default async function seedArticles(count: number): Promise<void> {
     try {
-        await log("info", "Seeding articles");
+        Logging.info("Seeding articles");
         Article.collection.drop();
         for (let i = 0; i < count; i++) {
             await Article.create({
@@ -14,7 +14,7 @@ export default async function seedArticles(count: number): Promise<void> {
             });
         }
     } catch (err) {
-        await log("error",err);
+        Logging.error(err);
         throw err;
     }
 }

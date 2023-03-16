@@ -1,9 +1,9 @@
-import log from "../../log/logger.js";
+import Logging from "../../library/Logging.js";
 import DeliveryMethod from "../../models/DeliveryMethod.js";
 
 export default async function seedDeliveryMethods(methodNames : string[]) : Promise<void> {
     try {
-        await log("info", "Seeding delivery methods");
+        Logging.info("Seeding delivery methods");
         DeliveryMethod.collection.drop();
         for (let i = 0; i < methodNames.length; i++) {
             await DeliveryMethod.create({
@@ -11,7 +11,7 @@ export default async function seedDeliveryMethods(methodNames : string[]) : Prom
             })
         }
     } catch (err) {
-        await log("error", err);
+        Logging.error(err);
         throw err;
     }
 }
