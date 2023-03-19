@@ -1,51 +1,55 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Types, Document, isValidObjectId } from "mongoose";
+
+interface IAttributeValue extends Document {
+    attributeId: Schema.Types.ObjectId,
+    attributeValue: Types.ObjectId | string,
+}
+
+interface IProductComment extends Document {
+    userId: Types.ObjectId,
+    rating: number,
+    text: string
+}
 
 export interface IProduct {
     name: string,
     preview: string,
-    images:string[],
+    images: string[],
     price: number,
     status: string,
     description: string,
-    categoryId: Schema.Types.ObjectId,
+    categoryId: Types.ObjectId,
     color: string,
-    values:[{
-        attributeId: Schema.Types.ObjectId,
-        value: string | Schema.Types.ObjectId,
-    }],
+    attributeValues: Types.DocumentArray<IAttributeValue>,
     review: string,
-    comments: [{
-        userId: Schema.Types.ObjectId,
-        rating: number,
-        text: string
-    }]
+    productComments: Types.DocumentArray<IProductComment>
 }
 
 export interface IProductModel extends IProduct, Document { }
 
 const ProductSchema: Schema = new Schema(
-{
-    name: { type: String, required: true },
-    preview: { type: String, required: true },
-    images: [{ type: String, required: true }],
-    price: { type: Schema.Types.Decimal128, required: true },
-    status: { type: String, required: true, enum: ["In stock", "On order", "Out of stock"] },
-    description: { type: String, required: true },
-    colorId: { type: Schema.Types.ObjectId, ref: "ValueType.values" },
-    categoryId: { type: Schema.Types.ObjectId, ref: "Category"},
-    values:[{
-        attributeId: { type: Schema.Types.ObjectId, ref: "Category.features.attributes._id" },
-        value: { type: Schema.Types.Mixed }
-    }],
-    review: { type: String },
-    comments: [{
-        userId: { type: Schema.Types.ObjectId, ref: "User" },
-        rating: { type: Number },
-        text: { type: String, required: true }
-    }]
-},
-{
-    collection: "products", versionKey: false, timestamps: true
-});
+    {
+        name: { type: String, required: true },
+        preview: { type: String, required: true },
+        images: [{ type: String }],
+        price: { type: Schema.Types.Decimal128, required: true },
+        status: { type: String, required: true, enum: ["In stock", "On order", "Out of stock"] },
+        description: { type: String },
+        colorId: { type: Schema.Types.ObjectId, ref: "ValueType.attributeValues" },
+        categoryId: { type: Schema.Types.ObjectId, ref: "Category" },
+        attributeValues: [{
+            attributeId: { type: Schema.Types.ObjectId, ref: "Category.features.attributes._id" },
+            attributeValue: { type: Schema.Types.Mixed }
+        }],
+        review: { type: String },
+        productComments: [{
+            userId: { type: Schema.Types.ObjectId, ref: "User" },
+            rating: { type: Number },
+            text: { type: String, required: true }
+        }]
+    },
+    {
+        collection: "products", versionKey: false, timestamps: true
+    });
 
 export default mongoose.model<IProductModel>('Product', ProductSchema);

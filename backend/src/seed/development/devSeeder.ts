@@ -36,7 +36,7 @@ export default async function seedDev() {
     });
     await seedChats(10, 12);
     await seedDeliveryMethods(["Self-delivery", "To an address"]);
-    await seedPaymentMethods(["Payment on delivery", "credit card"]);
+    await seedPaymentMethods(["Payment on delivery", "Credit card"]);
     await seedEvents(10);
     //await seedLogs(1000);
     await seedProducts(100);

@@ -2,7 +2,7 @@ import Logging from "../../library/Logging.js";
 import Role, { IRoleModel } from "../../models/Role.js";
 import User, { IUserModel } from "../../models/User.js";
 
-export default async function seedAdmin(): Promise<void> {
+export default async function seedAdmin (): Promise<void> {
 
     const pwd = process.env.SHOP_ADMIN_PASSWORD;
     if (pwd) {
@@ -18,7 +18,7 @@ export default async function seedAdmin(): Promise<void> {
                             name: process.env.SHOP_ADMIN_NAME || "Admin",
                             password: pwd,
                             email: "admin@mail.com",
-                            phone: "",
+                            phone: "1234567890", //TODO: add environment variable phone
                             address: "",
                             isActivated: true,
                             roleId: role._id,

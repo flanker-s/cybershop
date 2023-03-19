@@ -1,23 +1,26 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Document, Schema, Types } from "mongoose";
 
-export interface IChat {
-    messages: [{
-        userId: Schema.Types.ObjectId,
-        text: string
-    }],
+export interface IMessage extends Document {
+    userId: Types.ObjectId,
+    text: string
 }
 
-export interface IChatModel extends IChat, Document {}
+export interface IChat {
+    messages: Types.DocumentArray<IMessage>,
+}
+
+export interface IChatModel extends IChat, Document { }
 
 const ChatSchema: Schema = new Schema(
-{
-    massages: [{
-        userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-        text: { type: String, require: true }
-    }]
-}, 
-{ 
-    collection: "chats", versionKey: false, timestamps: true 
-});
+    {
+        messages: [{
+            _id: { type: Schema.Types.ObjectId, required: true },
+            userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+            text: { type: String, required: true }
+        }]
+    },
+    {
+        collection: "chats", versionKey: false, timestamps: true
+    });
 
 export default mongoose.model<IChatModel>('Chat', ChatSchema);

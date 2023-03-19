@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import ValueList, { IValueListModel } from "../../models/ValueList.js";
 import Logging from "../../library/Logging.js";
 
-export default async function seedCategories(tree: {[key: string] : any}): Promise<void> {
+export default async function seedCategories (tree: { [key: string]: any }): Promise<void> {
     try {
         Logging.info("Seeding categories");
         Category.collection.drop();
@@ -15,30 +15,33 @@ export default async function seedCategories(tree: {[key: string] : any}): Promi
     }
 }
 
-async function createCategoriesRecursive(node: {[key: string] : any}, parentId: string | null) : Promise<void> {
-    for(const key in node) {
+async function createCategoriesRecursive (node: { [key: string]: any }, parentId: string | null): Promise<void> {
+    for (const key in node) {
         try {
-            if( ! node.hasOwnProperty(key)) {
+            if (!node.hasOwnProperty(key)) {
                 return;
             }
             Logging.info(`Seeding categories... ${key}`);
-            const valueLists : IValueListModel[] = await ValueList.find({});
+            const valueLists: IValueListModel[] = await ValueList.find({});
             const valueList = valueLists[Math.floor(Math.random() * valueLists.length)];
             const category = await Category.create({
                 name: key,
                 parentId: parentId,
                 categoryBanners: [
                     {
+                        _id: new mongoose.Types.ObjectId(),
                         name: faker.word.noun(),
                         img: faker.image.imageUrl()
                     },
                     {
+                        _id: new mongoose.Types.ObjectId(),
                         name: faker.word.noun(),
                         img: faker.image.imageUrl()
                     }
                 ],
                 features: [
                     {
+                        _id: new mongoose.Types.ObjectId(),
                         name: faker.word.noun(),
                         attributes: [
                             {

@@ -2,13 +2,13 @@ import ValueList from "../../models/ValueList.js";
 import mongoose from "mongoose";
 import Logging from "../../library/Logging.js";
 
-export default async function seedColors(): Promise<void> {
+export default async function seedColors (): Promise<void> {
     try {
         Logging.info("Seeding colors");
         await ValueList.collection.drop();
         await ValueList.create({
             name: "Colors",
-            values: [
+            options: [
                 {
                     _id: new mongoose.Types.ObjectId(),
                     value: "#000000" //black

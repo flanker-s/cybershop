@@ -1,5 +1,5 @@
 import Logging from "../../library/Logging.js";
-import PaymentMethod from "../../models/DeliveryMethod.js";
+import PaymentMethod from "../../models/PaymentMethod.js";
 
 export default async function seedPaymentMethods(methodNames : string[]) : Promise<void> {
     try {
@@ -7,7 +7,7 @@ export default async function seedPaymentMethods(methodNames : string[]) : Promi
         PaymentMethod.collection.drop();
         for (let i = 0; i < methodNames.length; i++) {
             await PaymentMethod.create({
-                name: methodNames[Math.floor(Math.random() * methodNames.length)]
+                name: methodNames[i]
             })
         }
     } catch (err) {

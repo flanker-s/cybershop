@@ -7,8 +7,8 @@ export default async function seedDeliveryMethods(methodNames : string[]) : Prom
         DeliveryMethod.collection.drop();
         for (let i = 0; i < methodNames.length; i++) {
             await DeliveryMethod.create({
-                name: methodNames[Math.floor(Math.random() * methodNames.length)]
-            })
+                name: methodNames[i]
+            });
         }
     } catch (err) {
         Logging.error(err);
