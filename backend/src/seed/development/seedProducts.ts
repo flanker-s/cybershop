@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
 import { Types } from "mongoose";
-import Logging from "../../library/Logging.js";
+import Logging from "../../library/Logger.js";
 import Category, { ICategoryModel } from "../../models/Category.js";
 import Product from "../../models/Product.js";
 import User from "../../models/User.js";

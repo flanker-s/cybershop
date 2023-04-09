@@ -1,13 +1,15 @@
-import Logging from "../../library/Logging.js";
+import Logging from "../../library/Logger.js";
 import Role, { IRoleModel } from "../../models/Role.js";
 import User, { IUserModel } from "../../models/User.js";
 
 export default async function seedAdmin (): Promise<void> {
 
+    const name = process.env.SHOP_ADMIN_NAME;
     const pwd = process.env.SHOP_ADMIN_PASSWORD;
-    if (pwd) {
+    //TODO: Implement server error handling logic
+    if (pwd && name) {
         Logging.info("Seeding admin");
-        await User.deleteMany({});
+        await User.collection.drop();
         User.find({}).then((users: IUserModel[]) => {
             if (users.length === 0) {
                 Logging.info("No users found. Init the admin...");
@@ -15,7 +17,7 @@ export default async function seedAdmin (): Promise<void> {
                 Role.findOne({ name: "admin" }).then((role: IRoleModel | null) => {
                     if (role) {
                         User.create({
-                            name: process.env.SHOP_ADMIN_NAME || "Admin",
+                            name: name,
                             password: pwd,
                             email: "admin@mail.com",
                             phone: "1234567890", //TODO: add environment variable phone

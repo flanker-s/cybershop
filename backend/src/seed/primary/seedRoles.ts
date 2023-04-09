@@ -1,7 +1,7 @@
-import Logging from "../../library/Logging.js";
+import Logging from "../../library/Logger.js";
 import Role from "../../models/Role.js";
 
-export default async function seedRoles() : Promise<void> {
+export default async function seedRoles (): Promise<void> {
     try {
         Logging.info("Seeding roles");
         await Role.deleteMany({});

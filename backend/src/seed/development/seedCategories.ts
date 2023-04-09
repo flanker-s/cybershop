@@ -2,7 +2,7 @@ import Category from "../../models/Category.js";
 import { faker } from "@faker-js/faker";
 import mongoose from "mongoose";
 import ValueList, { IValueListModel } from "../../models/ValueList.js";
-import Logging from "../../library/Logging.js";
+import Logging from "../../library/Logger.js";
 
 export default async function seedCategories (tree: { [key: string]: any }): Promise<void> {
     try {

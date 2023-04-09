@@ -1,138 +1,132 @@
 import { Request, Response, NextFunction } from 'express';
 import Category from '../../models/Category.js';
+import ApiError from "../../exceptions/ApiError.js";
+import { checkRoles } from "../../services/auth.js";
 
-const createCategoryFeatureAttribute = (req: Request, res: Response, next: NextFunction) => {
-
-    const { categoryId, featureId } = req.params;
-    const { name, type } = req.body;
-    let attribute = { name, type, valueListId: null }
-
-    if (type === "reference") {
-        const { valueListId } = req.body;
-        if (valueListId) {
-            attribute.valueListId = valueListId;
-        } else {
-            return res.status(400).json({
-                message: "The 'valueListId' field is required " +
-                    "for attributes of type 'reference'. Please provide a valid valueListId."
-            });
+const createCategoryFeatureAttribute = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
         }
+        const { categoryId, featureId } = req.params;
+        const { name, type, valueListId } = req.body;
+        const category = await Category.findById(categoryId);
+        if (!category) {
+            throw ApiError.notFound('Category', categoryId);
+        }
+        const feature = category.features.id(featureId);
+        if (!feature) {
+            throw ApiError.notFound('Feature', featureId);
+        }
+        const attributeData = { name, type, valueListId: type === "reference" ? valueListId : null };
+        const attribute = feature.attributes.create(attributeData);
+        if (type === "reference" && !valueListId) {
+            throw ApiError.badRequest("The 'valueListId' field is required");
+        }
+        await category.save();
+        return res.status(201).json({ attribute });
+
+    } catch (err) {
+        next(err);
     }
-    return Category.findOneAndUpdate({ _id: categoryId })
-        .then((category) => {
-            if (category) {
-                const feature = category.features.id(featureId);
-                if (feature) {
-                    const newAttribute = feature.attributes.create(attribute);
-                    return res.status(201).json({ newAttribute });
-                } else {
-                    return res.status(404).json({ message: "Feature non found" });
-                }
-            } else {
-                return res.status(404).json({ message: "Category no found" });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
 }
 
-const readCategoryFeatureAttribute = (req: Request, res: Response, next: NextFunction) => {
+const readCategoryFeatureAttribute = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { categoryId, featureId, attributeId } = req.params;
+        const category = await Category.findById(categoryId);
+        if (!category) {
+            throw ApiError.notFound('Category', categoryId);
+        }
+        const feature = category.features.id(featureId);
+        if (!feature) {
+            throw ApiError.notFound('Feature', featureId);
+        }
+        const attribute = feature.attributes.id(attributeId);
+        if (!attribute) {
+            throw ApiError.notFound('Attribute', attributeId);
+        }
+        return res.status(200).json({ attribute });
 
-    const { categoryId, featureId, attributeId } = req.params;
-
-    return Category.findById(categoryId)
-        .then((category) => {
-            if (category) {
-                const feature = category.features.id(featureId);
-                if (feature) {
-                    const attribute = feature.attributes.id(attributeId);
-                    if (attribute) {
-                        return res.status(200).json({ attribute });
-                    } else {
-                        res.status(404).json({ message: "Attribute ot found" });
-                    }
-                } else {
-                    res.status(404).json({ message: "Feature not found" });
-                }
-                return res.status(200).json({ feature });
-            } else {
-                res.status(404).json({ message: "Category not found" });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const readAllCategoryFeatureAttributeItems = (req: Request, res: Response, next: NextFunction) => {
+const readAllCategoryFeatureAttributeItems = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { categoryId, featureId } = req.params;
+        const category = await Category.findById(categoryId);
+        if (!category) {
+            throw ApiError.notFound('Category', categoryId);
+        }
+        const feature = category.features.id(featureId);
+        if (!feature) {
+            throw ApiError.notFound('Feature', featureId);
+        }
+        const attributeItems = feature.attributes;
+        return res.status(200).json({ attributeItems });
 
-    const { categoryId, featureId } = req.params;
-
-    return Category.findById(categoryId)
-        .then((category) => {
-            if (category) {
-                const feature = category.features.id(featureId);
-                if (feature) {
-                    const attributeItems = feature.attributes;
-                    return res.status(200).json({ attributeItems });
-                } else {
-                    res.status(404).json({ message: "Feature not found" });
-                }
-            } else {
-                res.status(404).json({ message: "Category not found" });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const updateCategoryFeatureAttribute = (req: Request, res: Response, next: NextFunction) => {
+const updateCategoryFeatureAttribute = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { categoryId, featureId, attributeId } = req.params;
+        const category = await Category.findById(categoryId);
+        if (!category) {
+            throw ApiError.notFound('Category', categoryId);
+        }
+        const feature = category.features.id(featureId);
+        if (!feature) {
+            throw ApiError.notFound('Feature', featureId);
+        }
+        const attribute = feature.attributes.id(attributeId);
+        if (!attribute) {
+            throw ApiError.notFound('Attribute', attributeId);
+        }
+        attribute.set(req.body);
+        await category.save();
+        return res.status(200).json({ attribute });
 
-    const { categoryId, featureId, attributeId } = req.params;
-
-    return Category.findOneAndUpdate({ _id: categoryId })
-        .then((category) => {
-            if (category) {
-                const feature = category.features.id(featureId);
-                if (feature) {
-                    const attribute = feature.attributes.id(attributeId);
-                    if (attribute) {
-                        attribute.set(req.body);
-                        return res.status(200).json({ attribute });
-                    } else {
-                        return res.status(404).json({ message: 'Attribute not found' });
-                    }
-                } else {
-                    return res.status(404).json({ message: 'Feature not found' });
-                }
-            } else {
-                return res.status(404).json({ message: 'Category not found' });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const deleteCategoryFeatureAttribute = (req: Request, res: Response, next: NextFunction) => {
+const deleteCategoryFeatureAttribute = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { categoryId, featureId, attributeId } = req.params;
+        const category = await Category.findById(categoryId);
+        if (!category) {
+            throw ApiError.notFound('Category', categoryId);
+        }
+        const feature = category.features.id(featureId);
+        if (!feature) {
+            throw ApiError.notFound('Feature', featureId);
+        }
+        const attribute = feature.attributes.id(attributeId);
+        if (!attribute) {
+            throw ApiError.notFound('Attribute', attributeId);
+        }
+        feature.attributes.remove(featureId);
+        await category.save();
+        return res.status(204).json("deleted");
 
-    const { categoryId, featureId, attributeId } = req.params;
-
-    return Category.findOneAndUpdate({ _id: categoryId })
-        .then((category) => {
-            if (category) {
-                const feature = category.features.id(featureId);
-                if (feature) {
-                    const initAttributeCount = feature.attributes.length;
-                    const remainedItems = feature.attributes.remove(featureId);
-
-                    if (remainedItems.length !== initAttributeCount) {
-                        return res.status(204).json("deleted");
-                    } else {
-                        return res.status(404).json({ message: "Attribute not found" });
-                    }
-                } else {
-                    return res.status(404).json({ message: "Feature not found" });
-                }
-            } else {
-                return res.status(404).json({ message: "Category not found" });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
 export default {

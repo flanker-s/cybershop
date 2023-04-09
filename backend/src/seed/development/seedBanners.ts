@@ -1,8 +1,8 @@
 import Banner from "../../models/Banner.js";
 import { faker } from "@faker-js/faker";
-import Logging from "../../library/Logging.js";
+import Logging from "../../library/Logger.js";
 
-export default async function seedBanners(count: number): Promise<void> {
+export default async function seedBanners (count: number): Promise<void> {
     try {
         Logging.info("Seeding banners");
         Banner.collection.drop();

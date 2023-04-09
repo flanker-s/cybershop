@@ -1,59 +1,89 @@
 import { Request, Response, NextFunction } from 'express';
 import Category from '../../models/Category.js';
+import ApiError from "../../exceptions/ApiError.js";
+import { checkRoles } from "../../services/auth.js";
 
-const createCategory = (req: Request, res: Response, next: NextFunction) => {
+const createCategory = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { name, icon } = req.body;
+        const category = await Category.create({ name, icon });
+        return res.status(201).json({ category });
 
-    const { name, icon } = req.body;
-    const category = new Category({ name, icon });
-
-    return category.save()
-        .then(category => res.status(201).json({ category }))
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const readCategory = (req: Request, res: Response, next: NextFunction) => {
+const readCategory = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { categoryId } = req.params;
+        const category = await Category.findById(categoryId);
+        if (!category) {
+            throw ApiError.notFound('Category', categoryId);
+        }
+        return res.status(200).json({ category });
 
-    const categoryId = req.params.categoryId;
-
-    return Category.findById(categoryId)
-        .then(category => category ? res.status(200).json({ category })
-            : res.status(404).json({ message: 'Not found' }))
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const readAllCategoryItems = (req: Request, res: Response, next: NextFunction) => {
-    return Category.find()
-        .then(categoryItems => res.status(200).json({ categoryItems }))
-        .catch(err => res.status(500).json({ err }));
+const readAllCategoryItems = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const categoryItems = await Category.find();
+        return res.status(200).json({ categoryItems });
+
+    } catch (err) {
+        next(err);
+    }
 }
 
-const updateCategory = (req: Request, res: Response, next: NextFunction) => {
+const updateCategory = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { categoryId } = req.params;
+        const category = await Category.findById(categoryId);
+        if (!category) {
+            throw ApiError.notFound('Category', categoryId);
+        }
+        category.set(req.body);
+        await category.save();
+        return res.status(200).json({ category });
 
-    const categoryId = req.params.categoryId;
-
-    return Category.findById(categoryId)
-        .then((category) => {
-            if (category) {
-                category.set(req.body);
-
-                return category.save()
-                    .then(category => res.status(201).json({ category }))
-                    .catch(err => res.status(500).json({ err }));
-            } else {
-                return res.status(404).json({ message: 'Not found' });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const deleteCategory = (req: Request, res: Response, next: NextFunction) => {
+const deleteCategory = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { categoryId } = req.params;
+        const category = await Category.findByIdAndDelete(categoryId);
+        if (!category) {
+            throw ApiError.notFound('Category', categoryId);
+        }
+        return res.status(204).json({ message: 'deleted' });
 
-    const categoryId = req.params.categoryId;
-
-    return Category.findByIdAndDelete(categoryId)
-        .then(category => category ? res.status(204).json({ message: 'deleted' })
-            : res.status(404).json({ message: 'Not found' }))
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-export default { createCategory, readCategory, readAllCategoryItems, updateCategory, deleteCategory }
+export default {
+    createCategory,
+    readCategory,
+    readAllCategoryItems,
+    updateCategory,
+    deleteCategory
+}

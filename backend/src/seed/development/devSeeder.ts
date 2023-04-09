@@ -12,9 +12,9 @@ import seedPaymentMethods from "./seedPaymentMethods.js";
 import seedOrders from "./seedOrders.js";
 import seedShops from "./seedShops.js";
 import seedShowcases from "./seedShowcases.js";
-import Logging from "../../library/Logging.js";
+import Logging from "../../library/Logger.js";
 
-export default async function seedDev() {
+export default async function seedDev () {
     await seedUsers(10);
     await seedArticles(20);
     await seedBanners(5);
@@ -43,6 +43,6 @@ export default async function seedDev() {
     await seedOrders(20);
     await seedShops(10);
     await seedShowcases(5);
-    
+
     Logging.info("DB has been seeded for development");
 }

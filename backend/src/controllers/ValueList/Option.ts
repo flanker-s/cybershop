@@ -1,105 +1,105 @@
 import { Request, Response, NextFunction } from 'express';
+import ApiError from '../../exceptions/ApiError.js';
 import ValueList from '../../models/ValueList.js';
+import { checkRoles } from '../../services/auth.js';
 
-const createOption = (req: Request, res: Response, next: NextFunction) => {
+const createOption = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { valueListId } = req.params;
+        const { value } = req.body;
+        const valueList = await ValueList.findById(valueListId);
+        if (!valueList) {
+            throw ApiError.notFound('ValueList', valueListId);
+        }
+        const option = valueList.options.create({
+            value
+        });
+        return res.status(201).json({ option });
 
-    const { valueListId } = req.params;
-    const { value } = req.body;
-    const option = {
-        value
+    } catch (err) {
+        next(err);
     }
-
-    return ValueList.findOneAndUpdate({ _id: valueListId })
-        .then((valueList) => {
-            if (valueList) {
-                const newOption = valueList.options.create(option);
-                return res.status(201).json(newOption);
-            } else {
-                return res.status(404).json({ message: "ValueList no found" });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
 }
 
-const readOption = (req: Request, res: Response, next: NextFunction) => {
+const readOption = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { valueListId, optionId } = req.params;
 
-    const { valueListId, optionId } = req.params;
+        const valueList = await ValueList.findById(valueListId);
+        if (!valueList) {
+            throw ApiError.notFound('ValueList', valueListId);
+        }
+        const option = valueList.options.id(optionId);
+        if (!option) {
+            throw ApiError.notFound('Option', optionId);
+        }
+        return res.status(200).json({ option });
 
-    return ValueList.findById(valueListId)
-        .then((valueList) => {
-            if (valueList) {
-                const option = valueList.options.id(optionId);
-                if (option) {
-                    return res.status(200).json(option);
-                } else {
-                    return res.status(404).json({ message: "ValueList option not found" });
-                }
-            } else {
-                return res.status(404).json({ message: "ValueList not found" });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const readAllOptionItems = (req: Request, res: Response, next: NextFunction) => {
+const readAllOptionItems = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { valueListId } = req.params;
+        const valueList = await ValueList.findById(valueListId);
+        if (!valueList) {
+            throw ApiError.notFound('ValueList', valueListId);
+        }
+        const optionItems = valueList.options;
+        return res.status(200).json({ optionItems });
 
-    const { valueListId } = req.params;
-
-    return ValueList.findById(valueListId)
-        .then((valueList) => {
-            if (valueList) {
-                const optionItems = valueList.options;
-                return res.status(200).json({ optionItems });
-            } else {
-                return res.status(404).json({ message: `ValueList with an id:${valueListId} not found.` });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const updateOption = (req: Request, res: Response, next: NextFunction) => {
+const updateOption = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { valueListId, optionId } = req.params;
+        const valueList = await ValueList.findById(valueListId);
+        if (!valueList) {
+            throw ApiError.notFound('ValueList', valueListId);
+        }
+        const option = valueList.options.id(optionId);
+        if (!option) {
+            throw ApiError.notFound('Option', optionId);
+        }
+        option.set(req.body);
+        await valueList.save();
+        return res.status(200).json({ option });
 
-    const { valueListId, optionId } = req.params;
-
-    return ValueList.findById(valueListId)
-        .then((valueList) => {
-            if (valueList) {
-                const option = valueList.options.id(optionId);
-                if (option) {
-                    option.set(req.body);
-                    return valueList.save()
-                        .then(() => res.status(200).json(option))
-                        .catch((err) => res.status(500).json({ err }));
-                } else {
-                    return res.status(404).json({ message: "ValueList option not found" });
-                }
-            } else {
-                return res.status(404).json({ message: "ValueList not found" });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const deleteOption = (req: Request, res: Response, next: NextFunction) => {
+const deleteOption = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { valueListId, optionId } = req.params;
+        const valueList = await ValueList.findById(valueListId);
+        if (!valueList) {
+            throw ApiError.notFound('ValueList', valueListId);
+        }
+        const option = valueList.options.id(optionId);
+        if (!option) {
+            throw ApiError.notFound('Option', optionId);
+        }
+        valueList.options.remove(optionId);
+        return res.status(204).json("deleted");
 
-    const { valueListId, optionId } = req.params;
-
-    return ValueList.findOneAndUpdate({ _id: valueListId })
-        .then((valueList) => {
-            if (valueList) {
-                const initOptionCount = valueList.options.length;
-                const remainedItems = valueList.options.remove(optionId);
-
-                if (remainedItems.length !== initOptionCount) {
-                    return res.status(204).json("deleted");
-                } else {
-                    return res.status(404).json({ message: "ValueList option not found" });
-                }
-            } else {
-                return res.status(404).json({ message: "ValueList not found" });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
 export default {

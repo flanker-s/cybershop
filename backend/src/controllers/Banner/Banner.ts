@@ -1,59 +1,83 @@
 import { Request, Response, NextFunction } from 'express';
 import Banner from '../../models/Banner.js';
+import ApiError from "../../exceptions/ApiError.js";
+import { checkRoles } from "../../services/auth.js";
 
-const createBanner = (req: Request, res: Response, next: NextFunction) => {
+const createBanner = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { name, img, url, template } = req.body;
+        const banner = await Banner.create({ name, img, url, template });
+        return res.status(201).json({ banner });
 
-    const { name, img, url, template } = req.body;
-    const banner = new Banner({ name, img, url, template });
-
-    return banner.save()
-        .then(banner => res.status(201).json({ banner }))
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const readBanner = (req: Request, res: Response, next: NextFunction) => {
+const readBanner = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { bannerId } = req.params;
+        const banner = await Banner.findById(bannerId);
+        if (!banner) {
+            throw ApiError.notFound('Banner', bannerId);
+        }
+        return res.status(200).json({ banner });
 
-    const bannerId = req.params.bannerId;
-
-    return Banner.findById(bannerId)
-        .then(banner => banner ? res.status(200).json({ banner })
-            : res.status(404).json({ message: 'Not found' }))
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const readAllBannerItems = (req: Request, res: Response, next: NextFunction) => {
-    return Banner.find()
-        .then(bannerItems => res.status(200).json({ bannerItems }))
-        .catch(err => res.status(500).json({ err }));
+const readAllBannerItems = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const bannerItems = await Banner.find();
+        return res.status(200).json({ bannerItems });
+
+    } catch (err) {
+        next(err);
+    }
 }
 
-const updateBanner = (req: Request, res: Response, next: NextFunction) => {
+const updateBanner = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { bannerId } = req.params;
+        const banner = await Banner.findById(bannerId);
+        if (!banner) {
+            throw ApiError.notFound('Banner', bannerId);
+        }
+        banner.set(req.body);
+        await banner.save();
+        return res.status(200).json({ banner });
 
-    const bannerId = req.params.bannerId;
-
-    return Banner.findById(bannerId)
-        .then((banner) => {
-            if (banner) {
-                banner.set(req.body);
-
-                return banner.save()
-                    .then(banner => res.status(200).json({ banner }))
-                    .catch(err => res.status(500).json({ err }));
-            } else {
-                return res.status(404).json({ message: 'Not found' });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const deleteBanner = (req: Request, res: Response, next: NextFunction) => {
+const deleteBanner = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { bannerId } = req.params;
+        const banner = await Banner.findByIdAndDelete(bannerId);
+        if (!banner) {
+            throw ApiError.notFound('Banner', bannerId);
+        }
+        return res.status(204).json({ message: 'deleted' });
 
-    const bannerId = req.params.bannerId;
-
-    return Banner.findByIdAndDelete(bannerId)
-        .then(banner => banner ? res.status(204).json({ message: 'deleted' })
-            : res.status(404).json({ message: 'Not found' }))
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
 export default { createBanner, readBanner, readAllBannerItems, updateBanner, deleteBanner }

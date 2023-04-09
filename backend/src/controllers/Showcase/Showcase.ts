@@ -1,59 +1,82 @@
 import { Request, Response, NextFunction } from 'express';
+import ApiError from '../../exceptions/ApiError.js';
 import Showcase from '../../models/Showcase.js';
+import { checkRoles } from '../../services/auth.js';
 
-const createShowcase = (req: Request, res: Response, next: NextFunction) => {
-
-    const { name } = req.body;
-    const showcase = new Showcase({ name });
-
-    return showcase.save()
-        .then(showcase => res.status(201).json({ showcase }))
-        .catch(err => res.status(500).json({ err }));
+const createShowcase = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { name } = req.body;
+        const showcase = await Showcase.create({ name });
+        return res.status(201).json({ showcase });
+    } catch (err) {
+        next(err);
+    }
 }
 
-const readShowcase = (req: Request, res: Response, next: NextFunction) => {
+const readShowcase = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { showcaseId } = req.params;
+        const showcase = await Showcase.findById(showcaseId);
+        if (!showcase) {
+            throw ApiError.notFound('Showcase', showcaseId);
+        }
+        return res.status(200).json({ showcase });
 
-    const showcaseId = req.params.showcaseId;
-
-    return Showcase.findById(showcaseId)
-        .then(showcase => showcase ? res.status(200).json({ showcase })
-            : res.status(404).json({ message: 'Not found' }))
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const readAllShowcaseItems = (req: Request, res: Response, next: NextFunction) => {
-    return Showcase.find()
-        .then(showcaseItems => res.status(200).json({ showcaseItems }))
-        .catch(err => res.status(500).json({ err }));
+const readAllShowcaseItems = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const showcaseItems = await Showcase.find();
+        return res.status(200).json({ showcaseItems });
+
+    } catch (err) {
+        next(err);
+    }
 }
 
-const updateShowcase = (req: Request, res: Response, next: NextFunction) => {
+const updateShowcase = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { showcaseId } = req.params;
+        const showcase = await Showcase.findById(showcaseId);
+        if (!showcase) {
+            throw ApiError.notFound('Showcase', showcaseId);
+        }
+        showcase.set(req.body);
+        await showcase.save();
+        return res.status(200).json({ showcase });
 
-    const showcaseId = req.params.showcaseId;
-
-    return Showcase.findById(showcaseId)
-        .then((showcase) => {
-            if (showcase) {
-                showcase.set(req.body);
-
-                return showcase.save()
-                    .then(showcase => res.status(200).json({ showcase }))
-                    .catch(err => res.status(500).json({ err }));
-            } else {
-                return res.status(404).json({ message: 'Not found' });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const deleteShowcase = (req: Request, res: Response, next: NextFunction) => {
+const deleteShowcase = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { showcaseId } = req.params;
+        const showcase = await Showcase.findByIdAndDelete(showcaseId);
+        if (!showcase) {
+            throw ApiError.notFound('Showcase', showcaseId);
+        }
+        return res.status(201).json({ message: 'deleted' });
 
-    const showcaseId = req.params.showcaseId;
-
-    return Showcase.findByIdAndDelete(showcaseId)
-        .then(showcase => showcase ? res.status(201).json({ message: 'deleted' })
-            : res.status(404).json({ message: 'Not found' }))
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
 export default { createShowcase, readShowcase, readAllShowcaseItems, updateShowcase, deleteShowcase }

@@ -1,12 +1,12 @@
 import mongoose, { Schema, Types, Document, isValidObjectId } from "mongoose";
+import IHasOwner from "./interfaces/IHasOwner.js";
 
 interface IAttributeValue extends Document {
-    attributeId: Schema.Types.ObjectId,
+    attributeId: Types.ObjectId,
     attributeValue: Types.ObjectId | string,
 }
 
-interface IProductComment extends Document {
-    userId: Types.ObjectId,
+interface IProductComment extends IHasOwner, Document {
     rating: number,
     text: string
 }

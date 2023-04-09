@@ -1,6 +1,6 @@
 import ValueList from "../../models/ValueList.js";
 import mongoose from "mongoose";
-import Logging from "../../library/Logging.js";
+import Logging from "../../library/Logger.js";
 
 export default async function seedColors (): Promise<void> {
     try {

@@ -1,106 +1,112 @@
 import { Request, Response, NextFunction } from 'express';
+import ApiError from '../../exceptions/ApiError.js';
 import Product from '../../models/Product.js';
+import { checkRoles } from '../../services/auth.js';
 
-const createProductAttributeValue = (req: Request, res: Response, next: NextFunction) => {
+const createProductAttributeValue = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { productId } = req.params;
+        const { attributeId, value } = req.body;
 
-    const { productId } = req.params;
-    const { attributeId, value } = req.body;
-    const attributeValue = {
-        attributeId,
-        value
+        const product = await Product.findById(productId);
+        if (!product) {
+            throw ApiError.notFound('Product', productId);
+        }
+        const attributeValue = await product.attributeValues.create({
+            attributeId,
+            value
+        });
+        await product.save();
+        return res.status(201).json(attributeValue);
+
+    } catch (err) {
+        next(err);
     }
-
-    return Product.findOneAndUpdate({ _id: productId })
-        .then((product) => {
-            if (product) {
-                const newAttributeValue = product.attributeValues.create(attributeValue);
-                return res.status(201).json(newAttributeValue);
-            } else {
-                return res.status(404).json({ message: "Product no found" });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
 }
 
-const readProductAttributeValue = (req: Request, res: Response, next: NextFunction) => {
+const readProductAttributeValue = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { productId, attributeValueId } = req.params;
+        const product = await Product.findById(productId);
+        if (!product) {
+            throw ApiError.notFound('Product', productId);
+        }
+        const attributeValue = product.attributeValues.id(attributeValueId);
+        if (!attributeValue) {
+            throw ApiError.notFound('AttributeValue', attributeValueId);
+        }
+        return res.status(200).json(attributeValue);
 
-    const { productId, attributeValueId } = req.params;
-
-    return Product.findById(productId)
-        .then((product) => {
-            if (product) {
-                const attributeValue = product.attributeValues.id(attributeValueId);
-                if (attributeValue) {
-                    return res.status(200).json(attributeValue);
-                } else {
-                    return res.status(404).json({ message: "Product attributeValue not found" });
-                }
-            } else {
-                return res.status(404).json({ message: "Product not found" });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const readAllProductAttributeValueItems = (req: Request, res: Response, next: NextFunction) => {
+const readAllProductAttributeValueItems = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { productId } = req.params;
+        const product = await Product.findById(productId);
+        if (!product) {
+            throw ApiError.notFound('Product', productId);
+        }
+        const attributeValueItems = product.attributeValues;
+        return res.status(200).json({ attributeValueItems });
 
-    const { productId } = req.params;
-
-    return Product.findById(productId)
-        .then((product) => {
-            if (product) {
-                const attributeValueItems = product.attributeValues;
-                return res.status(200).json({ attributeValueItems });
-            } else { //TODO: add id to all not found response attributeValues
-                return res.status(404).json({ message: `Product with an id:${productId} not found.` });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const updateProductAttributeValue = (req: Request, res: Response, next: NextFunction) => {
+const updateProductAttributeValue = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { productId, attributeValueId } = req.params;
+        const product = await Product.findById(productId);
+        if (!product) {
+            throw ApiError.notFound('Product', productId);
+        }
+        const attributeValue = product.attributeValues.id(attributeValueId);
+        if (!attributeValue) {
+            throw ApiError.notFound('AttributeValue', attributeValueId);
+        }
+        attributeValue.set(req.body);
+        await product.save();
+        return res.status(200).json(attributeValue);
 
-    const { productId, attributeValueId } = req.params;
-
-    return Product.findById(productId)
-        .then((product) => {
-            if (product) {
-                const attributeValue = product.attributeValues.id(attributeValueId);
-                if (attributeValue) {
-                    attributeValue.set(req.body);
-                    return product.save()
-                        .then(() => res.status(200).json(attributeValue))
-                        .catch((err) => res.status(500).json({ err }));
-                } else {
-                    return res.status(404).json({ message: "Product attributeValue not found" });
-                }
-            } else {
-                return res.status(404).json({ message: "Product not found" });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const deleteProductAttributeValue = (req: Request, res: Response, next: NextFunction) => {
+const deleteProductAttributeValue = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { productId, attributeValueId } = req.params;
+        const product = await Product.findById(productId);
+        if (!product) {
+            throw ApiError.notFound('Product', productId);
+        }
+        const attributeValue = product.attributeValues.id(attributeValueId);
+        if (!attributeValue) {
+            throw ApiError.notFound('AttributeValue', attributeValueId);
+        }
+        product.attributeValues.remove(attributeValueId);
+        await product.save();
+        return res.status(204).json("deleted");
 
-    const { productId, attributeValueId } = req.params;
-
-    return Product.findOneAndUpdate({ _id: productId })
-        .then((product) => {
-            if (product) {
-                const initAttributeValueCount = product.attributeValues.length;
-                const remainedItems = product.attributeValues.remove(attributeValueId);
-
-                if (remainedItems.length !== initAttributeValueCount) {
-                    return res.status(204).json("deleted");
-                } else {
-                    return res.status(404).json({ message: "Product attributeValue not found" });
-                }
-            } else {
-                return res.status(404).json({ message: "Product not found" });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
 export default {

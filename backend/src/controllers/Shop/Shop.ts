@@ -1,59 +1,83 @@
 import { Request, Response, NextFunction } from 'express';
+import ApiError from '../../exceptions/ApiError.js';
 import Shop from '../../models/Shop.js';
+import { checkRoles } from '../../services/auth.js';
 
-const createShop = (req: Request, res: Response, next: NextFunction) => {
+const createShop = async (req: Request, res: Response, next: NextFunction) => {
+    const roles = ['admin'];
+    if (!await checkRoles(req, roles)) {
+        throw ApiError.forbidden();
+    }
+    try {
+        const { name } = req.body;
+        const shop = await Shop.create({ name });
+        return res.status(201).json({ shop });
 
-    const { name } = req.body;
-    const shop = new Shop({ name });
-
-    return shop.save()
-        .then(shop => res.status(201).json({ shop }))
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const readShop = (req: Request, res: Response, next: NextFunction) => {
+const readShop = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { shopId } = req.params;
+        const shop = await Shop.findById(shopId);
+        if (!shop) {
+            throw ApiError.notFound('Shop', shopId);
+        }
+        return res.status(200).json({ shop });
 
-    const shopId = req.params.shopId;
-
-    return Shop.findById(shopId)
-        .then(shop => shop ? res.status(200).json({ shop })
-            : res.status(404).json({ message: 'Not found' }))
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const readAllShopItems = (req: Request, res: Response, next: NextFunction) => {
-    return Shop.find()
-        .then(shopItems => res.status(200).json({ shopItems }))
-        .catch(err => res.status(500).json({ err }));
+const readAllShopItems = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const shopItems = await Shop.find();
+        return res.status(200).json({ shopItems });
+
+    } catch (err) {
+        next(err);
+    }
 }
 
-const updateShop = (req: Request, res: Response, next: NextFunction) => {
+const updateShop = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { shopId } = req.params;
+        const shop = await Shop.findById(shopId);
+        if (!shop) {
+            throw ApiError.notFound('Shop', shopId);
+        }
+        shop.set(req.body);
+        await shop.save();
+        return res.status(200).json({ shop });
 
-    const shopId = req.params.shopId;
-
-    return Shop.findById(shopId)
-        .then((shop) => {
-            if (shop) {
-                shop.set(req.body);
-
-                return shop.save()
-                    .then(shop => res.status(200).json({ shop }))
-                    .catch(err => res.status(500).json({ err }));
-            } else {
-                return res.status(404).json({ message: 'Not found' });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const deleteShop = (req: Request, res: Response, next: NextFunction) => {
+const deleteShop = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { shopId } = req.params;
+        const shop = await Shop.findByIdAndDelete(shopId);
+        if (!shop) {
+            throw ApiError.notFound('Shop', shopId);
+        }
+        return res.status(204).json({ message: 'deleted' });
 
-    const shopId = req.params.shopId;
-
-    return Shop.findByIdAndDelete(shopId)
-        .then(shop => shop ? res.status(204).json({ message: 'deleted' })
-            : res.status(404).json({ message: 'Not found' }))
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
 export default { createShop, readShop, readAllShopItems, updateShop, deleteShop }

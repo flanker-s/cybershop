@@ -1,59 +1,91 @@
 import { Request, Response, NextFunction } from 'express';
+import ApiError from '../../exceptions/ApiError.js';
 import ValueList from '../../models/ValueList.js';
+import { checkRoles } from '../../services/auth.js';
 
-const createValueList = (req: Request, res: Response, next: NextFunction) => {
+const createValueList = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { name } = req.body;
+        const valueList = await ValueList.create({ name });
+        return res.status(201).json({ valueList });
 
-    const { name } = req.body;
-    const valueList = new ValueList({ name });
-
-    return valueList.save()
-        .then(valueList => res.status(201).json({ valueList }))
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const readValueList = (req: Request, res: Response, next: NextFunction) => {
+const readValueList = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { valueListId } = req.params;
+        const valueList = await ValueList.findById(valueListId);
+        if (!valueList) {
+            throw ApiError.notFound('ValueList', valueListId);
+        }
+        return res.status(200).json({ valueList });
 
-    const valueListId = req.params.valueListId;
-
-    return ValueList.findById(valueListId)
-        .then(valueList => valueList ? res.status(200).json({ valueList })
-            : res.status(404).json({ message: 'Not found' }))
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const readAllValueListItems = (req: Request, res: Response, next: NextFunction) => {
-    return ValueList.find()
-        .then(valueListItems => res.status(200).json({ valueListItems }))
-        .catch(err => res.status(500).json({ err }));
+const readAllValueListItems = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const valueListItems = await ValueList.find();
+        return res.status(200).json({ valueListItems });
+
+    } catch (err) {
+        next(err);
+    }
 }
 
-const updateValueList = (req: Request, res: Response, next: NextFunction) => {
+const updateValueList = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { valueListId } = req.params;
+        const valueList = await ValueList.findById(valueListId);
+        if (!valueList) {
+            throw ApiError.notFound('ValueList', valueListId);
+        }
+        valueList.set(req.body);
+        await valueList.save();
+        return res.status(200).json({ valueList });
 
-    const valueListId = req.params.valueListId;
-
-    return ValueList.findById(valueListId)
-        .then((valueList) => {
-            if (valueList) {
-                valueList.set(req.body);
-
-                return valueList.save()
-                    .then(valueList => res.status(200).json({ valueList }))
-                    .catch(err => res.status(500).json({ err }));
-            } else {
-                return res.status(404).json({ message: 'Not found' });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const deleteValueList = (req: Request, res: Response, next: NextFunction) => {
+const deleteValueList = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { valueListId } = req.params;
+        const valueList = await ValueList.findByIdAndDelete(valueListId);
+        if (!valueList) {
+            throw ApiError.notFound('ValueList', valueListId);
+        }
+        return res.status(204).json({ message: 'deleted' });
 
-    const valueListId = req.params.valueListId;
-
-    return ValueList.findByIdAndDelete(valueListId)
-        .then(valueList => valueList ? res.status(204).json({ message: 'deleted' })
-            : res.status(404).json({ message: 'Not found' }))
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
 export default { createValueList, readValueList, readAllValueListItems, updateValueList, deleteValueList }

@@ -1,18 +1,18 @@
 import { faker } from "@faker-js/faker";
-import Logging from "../../library/Logging.js";
+import Logging from "../../library/Logger.js";
 import Shop from "../../models/Shop.js";
 
-export default async function seedShops(count: number) : Promise<void> {
+export default async function seedShops (count: number): Promise<void> {
     try {
         Logging.info("Seeding shops");
         Shop.collection.drop();
         const daysOfWeek = [
-            "Sunday", 
-            "Monday", 
-            "Tuesday", 
-            "wednesday", 
-            "Thursday", 
-            "Friday", 
+            "Sunday",
+            "Monday",
+            "Tuesday",
+            "wednesday",
+            "Thursday",
+            "Friday",
             "Saturday"
         ];
         const hours = [

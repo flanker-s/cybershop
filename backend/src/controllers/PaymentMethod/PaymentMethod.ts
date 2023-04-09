@@ -1,59 +1,83 @@
 import { Request, Response, NextFunction } from 'express';
+import ApiError from '../../exceptions/ApiError.js';
 import PaymentMethod from '../../models/PaymentMethod.js';
+import { checkRoles } from '../../services/auth.js';
 
-const createPaymentMethod = (req: Request, res: Response, next: NextFunction) => {
+const createPaymentMethod = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { name } = req.body;
+        const paymentMethod = await PaymentMethod.create({ name });
+        return res.status(201).json({ paymentMethod });
 
-    const { name } = req.body;
-    const paymentMethod = new PaymentMethod({ name });
-
-    return paymentMethod.save()
-        .then(paymentMethod => res.status(201).json({ paymentMethod }))
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const readPaymentMethod = (req: Request, res: Response, next: NextFunction) => {
+const readPaymentMethod = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { paymentMethodId } = req.params;
+        const paymentMethod = await PaymentMethod.findById(paymentMethodId);
+        if (!paymentMethod) {
+            throw ApiError.notFound('PaymentMethod', paymentMethodId);
+        }
+        return res.status(200).json({ paymentMethod });
 
-    const paymentMethodId = req.params.paymentMethodId;
-
-    return PaymentMethod.findById(paymentMethodId)
-        .then(paymentMethod => paymentMethod ? res.status(200).json({ paymentMethod })
-            : res.status(404).json({ message: 'Not found' }))
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const readAllPaymentMethodItems = (req: Request, res: Response, next: NextFunction) => {
-    return PaymentMethod.find()
-        .then(paymentMethodItems => res.status(200).json({ paymentMethodItems }))
-        .catch(err => res.status(500).json({ err }));
+const readAllPaymentMethodItems = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const paymentMethodItems = await PaymentMethod.find();
+        return res.status(200).json({ paymentMethodItems });
+
+    } catch (err) {
+        next(err);
+    }
 }
 
-const updatePaymentMethod = (req: Request, res: Response, next: NextFunction) => {
+const updatePaymentMethod = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { paymentMethodId } = req.params;
+        const paymentMethod = await PaymentMethod.findById(paymentMethodId);
+        if (!paymentMethod) {
+            throw ApiError.notFound('PaymentMethod', paymentMethodId);
+        }
+        paymentMethod.set(req.body);
+        await paymentMethod.save();
+        return res.status(200).json({ paymentMethod });
 
-    const paymentMethodId = req.params.paymentMethodId;
-
-    return PaymentMethod.findById(paymentMethodId)
-        .then((paymentMethod) => {
-            if (paymentMethod) {
-                paymentMethod.set(req.body);
-
-                return paymentMethod.save()
-                    .then(paymentMethod => res.status(200).json({ paymentMethod }))
-                    .catch(err => res.status(500).json({ err }));
-            } else {
-                return res.status(404).json({ message: 'Not found' });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const deletePaymentMethod = (req: Request, res: Response, next: NextFunction) => {
+const deletePaymentMethod = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { paymentMethodId } = req.params;
+        const paymentMethod = await PaymentMethod.findByIdAndDelete(paymentMethodId);
+        if (!paymentMethod) {
+            throw ApiError.notFound('PaymentMethod', paymentMethodId);
+        }
+        return res.status(204).json({ message: 'deleted' });
 
-    const paymentMethodId = req.params.paymentMethodId;
-
-    return PaymentMethod.findByIdAndDelete(paymentMethodId)
-        .then(paymentMethod => paymentMethod ? res.status(204).json({ message: 'deleted' })
-            : res.status(404).json({ message: 'Not found' }))
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
 export default { createPaymentMethod, readPaymentMethod, readAllPaymentMethodItems, updatePaymentMethod, deletePaymentMethod }

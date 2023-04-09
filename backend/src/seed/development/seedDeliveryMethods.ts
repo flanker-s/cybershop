@@ -1,7 +1,7 @@
-import Logging from "../../library/Logging.js";
+import Logging from "../../library/Logger.js";
 import DeliveryMethod from "../../models/DeliveryMethod.js";
 
-export default async function seedDeliveryMethods(methodNames : string[]) : Promise<void> {
+export default async function seedDeliveryMethods (methodNames: string[]): Promise<void> {
     try {
         Logging.info("Seeding delivery methods");
         DeliveryMethod.collection.drop();

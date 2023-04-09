@@ -1,59 +1,89 @@
 import { Request, Response, NextFunction } from 'express';
 import Chat from '../../models/Chat.js';
+import ApiError from "../../exceptions/ApiError.js";
+import { checkOwner, checkRoles, getCurrentUser } from "../../services/auth.js";
+import IHasOwner from '../../models/interfaces/IHasOwner.js';
 
-const createChat = (req: Request, res: Response, next: NextFunction) => {
+const createChat = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const currentUser = getCurrentUser(req);
+        const chat = await Chat.create({ userId: currentUser.id });
+        return res.status(201).json({ chat });
 
-    const { } = req.body;
-    const chat = new Chat({});
-
-    return chat.save()
-        .then(chat => res.status(201).json({ chat }))
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const readChat = (req: Request, res: Response, next: NextFunction) => {
+const readChat = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin', 'shipper', 'support'];
+        const { chatId } = req.params;
+        const chat = await Chat.findById(chatId);
+        if (!chat) {
+            throw ApiError.notFound('Chat', chatId);
+        }
+        if (await checkRoles(req, roles) || checkOwner(req, chat as IHasOwner)) {
+            return res.status(200).json({ chat });
+        } else {
+            throw ApiError.forbidden();
+        }
 
-    const chatId = req.params.chatId;
-
-    return Chat.findById(chatId)
-        .then(chat => chat ? res.status(200).json({ chat })
-            : res.status(404).json({ message: 'Not found' }))
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const readAllChatItems = (req: Request, res: Response, next: NextFunction) => {
-    return Chat.find()
-        .then(chatItems => res.status(200).json({ chatItems }))
-        .catch(err => res.status(500).json({ err }));
+const readAllChatItems = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin', 'shipper', 'support'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const chatItems = await Chat.find();
+        return res.status(200).json({ chatItems });
+
+    } catch (err) {
+        next(err);
+    }
 }
 
-const updateChat = (req: Request, res: Response, next: NextFunction) => {
+const updateChat = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const chatId = req.params.chatId;
+        const chat = await Chat.findById(chatId);
+        if (!chat) {
+            throw ApiError.notFound('Chat', chatId);
+        }
+        chat.set(req.body);
+        await chat.save();
+        return res.status(200).json({ chat });
 
-    const chatId = req.params.chatId;
-
-    return Chat.findById(chatId)
-        .then((chat) => {
-            if (chat) {
-                chat.set(req.body);
-
-                return chat.save()
-                    .then(chat => res.status(200).json({ chat }))
-                    .catch(err => res.status(500).json({ err }));
-            } else {
-                return res.status(404).json({ message: 'Not found' });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const deleteChat = (req: Request, res: Response, next: NextFunction) => {
+const deleteChat = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const chatId = req.params.chatId;
+        const chat = await Chat.findByIdAndDelete(chatId);
+        if (!chat) {
+            throw ApiError.notFound('Chat', chatId);
+        }
+        return res.status(204).json({ message: 'deleted' });
 
-    const chatId = req.params.chatId;
-
-    return Chat.findByIdAndDelete(chatId)
-        .then(chat => chat ? res.status(204).json({ message: 'deleted' })
-            : res.status(404).json({ message: 'Not found' }))
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
 export default { createChat, readChat, readAllChatItems, updateChat, deleteChat }

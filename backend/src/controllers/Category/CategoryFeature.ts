@@ -1,102 +1,108 @@
 import { Request, Response, NextFunction } from 'express';
-import { Types } from 'mongoose';
 import Category from '../../models/Category.js';
+import ApiError from "../../exceptions/ApiError.js";
+import { checkRoles } from "../../services/auth.js";
 
-const createCategoryFeature = (req: Request, res: Response, next: NextFunction) => {
+const createCategoryFeature = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { categoryId } = req.params;
+        const { name } = req.body;
+        const category = await Category.findById(categoryId);
+        if (!category) {
+            throw ApiError.notFound('Category', categoryId);
+        }
+        const feature = category.features.create({ name });
+        await category.save();
+        return res.status(201).json(feature)
 
-    const { categoryId } = req.params;
-    const { name } = req.body;
-
-    const feature = {
-        _id: new Types.ObjectId(),
-        name
+    } catch (err) {
+        next(err);
     }
-
-    return Category.findOneAndUpdate({ _id: categoryId })
-        .then((category) => {
-            if (category) {
-                const newFeature = category.features.create(feature);
-                return res.status(201).json(newFeature)
-            } else {
-                return res.status(404).json({ message: "Category no found" });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
 }
 
-const readCategoryFeature = (req: Request, res: Response, next: NextFunction) => {
+const readCategoryFeature = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { categoryId, featureId } = req.params;
+        const category = await Category.findById(categoryId);
+        if (!category) {
+            throw ApiError.notFound('Category', categoryId);
+        }
+        const feature = category.features.id(featureId);
+        if (!feature) {
+            throw ApiError.notFound('Feature', featureId);
+        }
+        return res.status(200).json({ feature });
 
-    const { categoryId, featureId } = req.params;
-
-    return Category.findById(categoryId)
-        .then((category) => {
-            if (category) {
-                const feature = category.features.id(featureId);
-                return res.status(200).json({ feature });
-            } else {
-                res.status(404).json({ message: "Not found" });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const readAllCategoryFeatureItems = (req: Request, res: Response, next: NextFunction) => {
+const readAllCategoryFeatureItems = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { categoryId } = req.params;
+        const category = await Category.findById(categoryId);
+        if (!category) {
+            throw ApiError.notFound('Category', categoryId);
+        }
+        const featureItems = category.features;
+        return res.status(200).json({ featureItems });
 
-    const { categoryId } = req.params;
-
-    return Category.findById(categoryId)
-        .then((category) => {
-            if (category) {
-                const featureItems = category.features;
-                return res.status(200).json({ featureItems });
-            } else {
-                res.status(404).json({ message: "Not found" });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const updateCategoryFeature = (req: Request, res: Response, next: NextFunction) => {
+const updateCategoryFeature = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { categoryId, featureId } = req.params;
+        const category = await Category.findById(categoryId);
+        if (!category) {
+            throw ApiError.notFound('Category', categoryId);
+        }
+        const feature = category.features.id(featureId);
+        if (!feature) {
+            throw ApiError.notFound('Feature', featureId);
+        }
+        feature.set(req.body);
+        await category.save();
+        return res.status(200).json({ feature });
 
-    const { categoryId, featureId } = req.params;
-
-    return Category.findOneAndUpdate({ _id: categoryId })
-        .then((category) => {
-            if (category) {
-                const feature = category.features.id(featureId);
-                if (feature) {
-                    feature.set(req.body);
-                    return res.status(200).json({ feature });
-                } else {
-                    return res.status(404).json({ message: 'Not found' });
-                }
-            } else {
-                return res.status(404).json({ message: 'Not found' });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const deleteCategoryFeature = (req: Request, res: Response, next: NextFunction) => {
+const deleteCategoryFeature = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { categoryId, featureId } = req.params;
+        const category = await Category.findById(categoryId);
+        if (!category) {
+            throw ApiError.notFound('Category', categoryId);
+        }
+        const feature = category.features.id(featureId);
+        if (!feature) {
+            throw ApiError.notFound('Feature', featureId);
+        }
+        category.features.remove(featureId);
+        await category.save();
+        return res.status(204).json("deleted");
 
-    const { categoryId, featureId } = req.params;
-
-    return Category.findOneAndUpdate({ _id: categoryId })
-        .then((category) => {
-            if (category) {
-                const initFeatureCount = category.features.length;
-                const remainedItems = category.features.remove(featureId);
-
-                if (remainedItems.length !== initFeatureCount) {
-                    return res.status(204).json("deleted");
-                } else {
-                    return res.status(404).json({ message: "Not found" });
-                }
-            } else {
-                return res.status(404).json({ message: "Not found" });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
 export default {

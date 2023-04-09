@@ -1,22 +1,24 @@
 import mongoose, { Document, Schema, Types } from "mongoose";
+import IHasOwner from "./interfaces/IHasOwner.js";
 
-interface IOrderItem extends Document {
-    productId: Schema.Types.ObjectId,
+interface IOrderProduct extends Document {
+    productId: Types.ObjectId,
     price: number
 }
 
-export interface IOrder {
-    userId: Schema.Types.ObjectId,
+export interface IOrder extends IHasOwner {
+    phone: string,
     deliveryMethodId: Schema.Types.ObjectId,
     paymentMethodId: Schema.Types.ObjectId,
     status: string,
-    orderProducts: Types.DocumentArray<IOrderItem>,
+    orderProducts: Types.DocumentArray<IOrderProduct>,
 }
 export interface IOrderModel extends IOrder, Document { }
 
 const OrderSchema: Schema = new Schema(
     {
         userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+        phone: { type: String, required: true },
         deliveryMethodId: { type: Schema.Types.ObjectId, ref: "DeliveryMethod", required: true },
         paymentMethodId: { type: Schema.Types.ObjectId, ref: "PaymentMethod", required: true },
         status: {

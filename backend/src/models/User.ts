@@ -26,8 +26,8 @@ const UserSchema: Schema = new Schema(
     {
         name: { type: String, required: true, unique: true },
         password: { type: String, required: true },
-        email: { type: String, unique: true },
-        phone: { type: String, unique: true, required: true },
+        email: { type: String, unique: true, required: true },
+        phone: { type: String, unique: true, sparse: true },
         address: { type: String },
         isActivated: { type: Boolean, default: false },
         activationLink: { type: String },

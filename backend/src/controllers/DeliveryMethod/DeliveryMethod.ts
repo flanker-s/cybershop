@@ -1,58 +1,84 @@
 import { Request, Response, NextFunction } from 'express';
+import ApiError from '../../exceptions/ApiError.js';
 import DeliveryMethod from '../../models/DeliveryMethod.js';
+import { checkRoles } from '../../services/auth.js';
 
-const createDeliveryMethod = (req: Request, res: Response, next: NextFunction) => {
+const createDeliveryMethod = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { name } = req.body;
+        const deliveryMethod = await DeliveryMethod.create({ name });
+        return res.status(201).json({ deliveryMethod });
 
-    const { name } = req.body;
-    const deliveryMethod = new DeliveryMethod({ name });
-
-    return deliveryMethod.save()
-        .then(deliveryMethod => res.status(201).json({ deliveryMethod }))
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const readDeliveryMethod = (req: Request, res: Response, next: NextFunction) => {
+const readDeliveryMethod = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { deliveryMethodId } = req.params;
 
-    const deliveryMethodId = req.params.deliveryMethodId;
+        const deliveryMethod = await DeliveryMethod.findById(deliveryMethodId);
+        if (!deliveryMethod) {
+            throw ApiError.notFound('DeliveryMethod', deliveryMethodId);
+        }
+        return res.status(200).json({ deliveryMethod });
 
-    return DeliveryMethod.findById(deliveryMethodId)
-        .then(deliveryMethod => deliveryMethod ? res.status(200).json({ deliveryMethod })
-            : res.status(404).json({ message: 'Not found' }))
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const readAllDeliveryMethodItems = (req: Request, res: Response, next: NextFunction) => {
-    return DeliveryMethod.find()
-        .then(deliveryMethodItems => res.status(200).json({ deliveryMethodItems }))
-        .catch(err => res.status(500).json({ err }));
+const readAllDeliveryMethodItems = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const deliveryMethodItems = await DeliveryMethod.find();
+        return res.status(200).json({ deliveryMethodItems });
+    } catch (err) {
+        next(err);
+    }
 }
 
-const updateDeliveryMethod = (req: Request, res: Response, next: NextFunction) => {
+const updateDeliveryMethod = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { deliveryMethodId } = req.params;
 
-    const deliveryMethodId = req.params.deliveryMethodId;
+        const deliveryMethod = await DeliveryMethod.findById(deliveryMethodId);
+        if (!deliveryMethod) {
+            throw ApiError.notFound('DeliveryMethod', deliveryMethodId);
+        }
+        deliveryMethod.set(req.body);
+        await deliveryMethod.save();
+        return res.status(200).json({ deliveryMethod });
 
-    return DeliveryMethod.findById(deliveryMethodId)
-        .then((deliveryMethod) => {
-            if (deliveryMethod) {
-                deliveryMethod.set(req.body);
-
-                return deliveryMethod.save()
-                    .then(deliveryMethod => res.status(200).json({ deliveryMethod }))
-                    .catch(err => res.status(500).json({ err }));
-            } else {
-                return res.status(404).json({ message: 'Not found' });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
-const deleteDeliveryMethod = (req: Request, res: Response, next: NextFunction) => {
+const deleteDeliveryMethod = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { deliveryMethodId } = req.params;
 
-    const deliveryMethodId = req.params.deliveryMethodId;
+        const deliveryMethod = await DeliveryMethod.findByIdAndDelete(deliveryMethodId);
+        if (!deliveryMethod) {
+            throw ApiError.notFound('DeliveryMethod', deliveryMethodId);
+        }
+        return res.status(204).json({ message: 'deleted' });
 
-    return DeliveryMethod.findByIdAndDelete(deliveryMethodId)
-        .then(deliveryMethod => deliveryMethod ? res.status(204).json({ message: 'deleted' })
-            : res.status(404).json({ message: 'Not found' }))
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
 export default { createDeliveryMethod, readDeliveryMethod, readAllDeliveryMethodItems, updateDeliveryMethod, deleteDeliveryMethod }

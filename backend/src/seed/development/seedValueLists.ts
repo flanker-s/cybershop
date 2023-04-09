@@ -1,7 +1,7 @@
 import ValueList from "../../models/ValueList.js";
 import mongoose from "mongoose";
 import { faker } from "@faker-js/faker";
-import Logging from "../../library/Logging.js";
+import Logging from "../../library/Logger.js";
 
 interface IValue {
     _id: mongoose.Types.ObjectId,

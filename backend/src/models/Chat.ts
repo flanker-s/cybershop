@@ -1,20 +1,20 @@
 import mongoose, { Document, Schema, Types } from "mongoose";
+import IHasOwner from "./interfaces/IHasOwner.js";
 
-export interface IMessage extends Document {
-    userId: Types.ObjectId,
+export interface IMessage extends IHasOwner, Document {
     text: string
 }
 
-export interface IChat {
-    messages: Types.DocumentArray<IMessage>,
+export interface IChat extends IHasOwner {
+    messages: Types.DocumentArray<IMessage>
 }
 
 export interface IChatModel extends IChat, Document { }
 
 const ChatSchema: Schema = new Schema(
     {
+        userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
         messages: [{
-            _id: { type: Schema.Types.ObjectId, required: true },
             userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
             text: { type: String, required: true }
         }]

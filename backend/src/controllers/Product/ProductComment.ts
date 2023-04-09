@@ -1,107 +1,112 @@
 import { Request, Response, NextFunction } from 'express';
+import ApiError from '../../exceptions/ApiError.js';
+import IHasOwner from '../../models/interfaces/IHasOwner.js';
 import Product from '../../models/Product.js';
+import { checkOwner, checkRoles, getCurrentUser } from '../../services/auth.js';
 
-const createProductComment = (req: Request, res: Response, next: NextFunction) => {
+const createProductComment = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { productId } = req.params;
+        const { rating, text } = req.body;
 
-    const { productId } = req.params;
-    const { userId, rating, text } = req.body;
-    const productComment = {
-        userId,
-        rating,
-        text
+        const product = await Product.findById(productId);
+        if (!product) {
+            throw ApiError.notFound('Product', productId);
+        }
+        const productComment = product.productComments.create({
+            userId: getCurrentUser(req).id,
+            rating,
+            text
+        });
+        await product.save();
+        return res.status(201).json(productComment);
+
+    } catch (err) {
+        next(err);
     }
-
-    return Product.findOneAndUpdate({ _id: productId })
-        .then((product) => {
-            if (product) {
-                const newProductComment = product.productComments.create(productComment);
-                return res.status(201).json(newProductComment);
-            } else {
-                return res.status(404).json({ message: "Product no found" });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
 }
 
-const readProductComment = (req: Request, res: Response, next: NextFunction) => {
+const readProductComment = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { productId, productCommentId } = req.params;
+        const product = await Product.findById(productId);
+        if (!product) {
+            throw ApiError.notFound('Product', productId);
+        }
+        const productComment = product.productComments.id(productCommentId);
+        if (!productComment) {
+            throw ApiError.notFound('ProductComment', productCommentId);
+        }
+        return res.status(200).json(productComment);
 
-    const { productId, productCommentId } = req.params;
-
-    return Product.findById(productId)
-        .then((product) => {
-            if (product) {
-                const productComment = product.productComments.id(productCommentId);
-                if (productComment) {
-                    return res.status(200).json(productComment);
-                } else {
-                    return res.status(404).json({ message: "Product comment not found" });
-                }
-            } else {
-                return res.status(404).json({ message: "Product not found" });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const readAllProductCommentItems = (req: Request, res: Response, next: NextFunction) => {
+const readAllProductCommentItems = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { productId } = req.params;
+        const product = await Product.findById(productId);
+        if (!product) {
+            throw ApiError.notFound('Product', productId);
+        }
+        const productCommentItems = product.productComments;
+        return res.status(200).json({ productCommentItems });
 
-    const { productId } = req.params;
-
-    return Product.findById(productId)
-        .then((product) => {
-            if (product) {
-                const productCommentItems = product.productComments;
-                return res.status(200).json({ productCommentItems });
-            } else { //TODO: add id to all not found response productComments
-                return res.status(404).json({ message: `Product with an id:${productId} not found.` });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const updateProductComment = (req: Request, res: Response, next: NextFunction) => {
+const updateProductComment = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin'];
+        const { productId, productCommentId } = req.params;
+        const product = await Product.findById(productId);
+        if (!product) {
+            throw ApiError.notFound('Product', productId);
+        }
+        const productComment = product.productComments.id(productCommentId);
+        if (!productComment) {
+            throw ApiError.notFound('ProductComment', productCommentId);
+        }
+        if (await checkRoles(req, roles) || await checkOwner(req, productComment as IHasOwner)) {
+            productComment.set(req.body);
+            await product.save();
+            return res.status(200).json(productComment);
+        } else {
+            throw ApiError.forbidden();
+        }
 
-    const { productId, productCommentId } = req.params;
-
-    return Product.findById(productId)
-        .then((product) => {
-            if (product) {
-                const productComment = product.productComments.id(productCommentId);
-                if (productComment) {
-                    productComment.set(req.body);
-                    return product.save()
-                        .then(() => res.status(200).json(productComment))
-                        .catch((err) => res.status(500).json({ err }));
-                } else {
-                    return res.status(404).json({ message: "Product comment not found" });
-                }
-            } else {
-                return res.status(404).json({ message: "Product not found" });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const deleteProductComment = (req: Request, res: Response, next: NextFunction) => {
+const deleteProductComment = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin'];
+        const { productId, productCommentId } = req.params;
+        const product = await Product.findById(productId);
+        if (!product) {
+            throw ApiError.notFound('Product', productId);
+        }
+        const productComment = product.productComments.id(productCommentId);
+        if (!productComment) {
+            throw ApiError.notFound('ProductComment', productCommentId);
+        }
+        if (await checkRoles(req, roles) || await checkOwner(req, productComment as IHasOwner)) {
+            product.productComments.remove(productCommentId);
+            await product.save();
+            return res.status(204).json("deleted");
+        } else {
+            throw ApiError.forbidden();
+        }
 
-    const { productId, productCommentId } = req.params;
-
-    return Product.findOneAndUpdate({ _id: productId })
-        .then((product) => {
-            if (product) {
-                const initProductCommentCount = product.productComments.length;
-                const remainedItems = product.productComments.remove(productCommentId);
-
-                if (remainedItems.length !== initProductCommentCount) {
-                    return res.status(204).json("deleted");
-                } else {
-                    return res.status(404).json({ message: "Product comment not found" });
-                }
-            } else {
-                return res.status(404).json({ message: "Product not found" });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
 export default {

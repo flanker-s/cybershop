@@ -1,26 +1,40 @@
 import { Request, Response, NextFunction } from 'express';
+import ApiError from '../../exceptions/ApiError.js';
 import Log from '../../models/Log.js';
 
-const readLog = (req: Request, res: Response, next: NextFunction) => {
+const readLog = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { logId } = req.params;
 
-    const logId = req.params.logId;
+        const log = await Log.findById(logId);
+        if (!log) {
+            throw ApiError.notFound('Log', logId);
+        }
+        return res.status(200).json({ log });
 
-    return Log.findById(logId)
-        .then(log => log ? res.status(200).json({ log })
-            : res.status(404).json({ message: 'Not found' }))
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const readAllLogItems = (req: Request, res: Response, next: NextFunction) => {
-    return Log.find()
-        .then(logItems => res.status(200).json({ logItems }))
-        .catch(err => res.status(500).json({ err }));
+const readAllLogItems = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const logItems = await Log.find();
+        return res.status(200).json({ logItems })
+
+    } catch (err) {
+        next(err);
+    }
 }
 
-const deleteAllLogItems = (req: Request, res: Response, next: NextFunction) => {
-    return Log.deleteMany({})
-        .then(() => res.status(204).json({ message: 'deleted' }))
-        .catch(err => res.status(500).json({ err }));
+const deleteAllLogItems = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        await Log.deleteMany({});
+        return res.status(204).json({ message: 'deleted' });
+
+    } catch (err) {
+        next(err);
+    }
 }
 
 export default { readLog, readAllLogItems, deleteAllLogItems }

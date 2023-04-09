@@ -1,4 +1,5 @@
-import Logging from "../../library/Logging.js";
+import { faker } from "@faker-js/faker";
+import Logging from "../../library/Logger.js";
 import DeliveryMethod from "../../models/DeliveryMethod.js";
 import Order from "../../models/Order.js";
 import PaymentMethod from "../../models/PaymentMethod.js";
@@ -35,6 +36,7 @@ export default async function seedOrders (count: number): Promise<void> {
             const product = products[Math.floor(Math.random() * products.length)];
             Order.create({
                 userId: userId,
+                phone: faker.phone.number(),
                 deliveryMethodId: deliveryMethodIds[Math.floor(Math.random() * deliveryMethodIds.length)],
                 paymentMethodId: paymentMethodIds[Math.floor(Math.random() * paymentMethodIds.length)],
                 status: statuses[Math.floor(Math.random() * statuses.length)],

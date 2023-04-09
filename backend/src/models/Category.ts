@@ -9,21 +9,18 @@ export interface ICategory {
     features: Types.DocumentArray<ICategoryFeature>
 }
 
-interface ICategoryBanner extends Document {
-    _id: Types.ObjectId,
+export interface ICategoryBanner extends Document {
     name: string,
     img: string,
     url: string
 }
 
-interface ICategoryFeature extends Document {
-    _id: Types.ObjectId,
+export interface ICategoryFeature extends Document {
     name: string,
     attributes: Types.DocumentArray<ICategoryAttribute>
 }
 
-interface ICategoryAttribute extends Document {
-    _id: Types.ObjectId,
+export interface ICategoryAttribute extends Document {
     name: string,
     type: string,
     valueListId: Types.ObjectId | null

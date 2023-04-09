@@ -1,59 +1,78 @@
 import { Request, Response, NextFunction } from 'express';
+import ApiError from '../../exceptions/ApiError.js';
 import Event from '../../models/Event.js';
+import { checkRoles } from '../../services/auth.js';
 
-const createEvent = (req: Request, res: Response, next: NextFunction) => {
+const createEvent = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { name, img, url, text } = req.body;
 
-    const { name, img, url, text } = req.body;
-    const event = new Event({ name, img, url, text });
+        const event = await Event.create({ name, img, url, text });
+        return res.status(201).json({ event });
 
-    return event.save()
-        .then(event => res.status(201).json({ event }))
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const readEvent = (req: Request, res: Response, next: NextFunction) => {
+const readEvent = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { eventId } = req.params;
 
-    const eventId = req.params.eventId;
-
-    return Event.findById(eventId)
-        .then(event => event ? res.status(200).json({ event })
-            : res.status(404).json({ message: 'Not found' }))
-        .catch(err => res.status(500).json({ err }));
+        const event = await Event.findById(eventId);
+        if (!event) {
+            throw ApiError.notFound('Event', eventId);
+        }
+        return res.status(200).json({ event });
+    } catch (err) {
+        next(err);
+    }
 }
 
-const readAllEventItems = (req: Request, res: Response, next: NextFunction) => {
-    return Event.find()
-        .then(eventItems => res.status(200).json({ eventItems }))
-        .catch(err => res.status(500).json({ err }));
+const readAllEventItems = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const eventItems = await Event.find();
+        return res.status(200).json({ eventItems });
+
+    } catch (err) {
+        next(err);
+    }
 }
 
-const updateEvent = (req: Request, res: Response, next: NextFunction) => {
+const updateEvent = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { eventId } = req.params;
 
-    const eventId = req.params.eventId;
+        const event = await Event.findById(eventId);
+        if (!event) {
+            throw ApiError.notFound('Event', eventId);
+        }
+        event.set(req.body);
+        await event.save();
+        return res.status(200).json({ event });
 
-    return Event.findById(eventId)
-        .then((event) => {
-            if (event) {
-                event.set(req.body);
-
-                return event.save()
-                    .then(event => res.status(200).json({ event }))
-                    .catch(err => res.status(500).json({ err }));
-            } else {
-                return res.status(404).json({ message: 'Not found' });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const deleteEvent = (req: Request, res: Response, next: NextFunction) => {
+const deleteEvent = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { eventId } = req.params;
 
-    const eventId = req.params.eventId;
+        const event = await Event.findByIdAndDelete(eventId);
+        if (!event) {
+            throw ApiError.notFound('Event', eventId);
+        }
+        return res.status(204).json({ message: 'deleted' });
 
-    return Event.findByIdAndDelete(eventId)
-        .then(event => event ? res.status(204).json({ message: 'deleted' })
-            : res.status(404).json({ message: 'Not found' }))
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
 export default { createEvent, readEvent, readAllEventItems, updateEvent, deleteEvent }

@@ -1,7 +1,7 @@
-import Logging from "../../library/Logging.js";
+import Logging from "../../library/Logger.js";
 import PaymentMethod from "../../models/PaymentMethod.js";
 
-export default async function seedPaymentMethods(methodNames : string[]) : Promise<void> {
+export default async function seedPaymentMethods (methodNames: string[]): Promise<void> {
     try {
         Logging.info("Seeding payments methods");
         PaymentMethod.collection.drop();

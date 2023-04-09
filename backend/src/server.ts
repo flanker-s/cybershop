@@ -1,9 +1,15 @@
-import express from "express";
+import express, { response } from "express";
 import http from "http";
 import mongoose from "mongoose";
-import { config } from "./config/config.js"
-import Logging from "./library/Logging.js";
+import cookieParser from "cookie-parser";
+import errorHandler from "./middleware/ErrorHandler.js";
+import requestLogger from "./middleware/RequestLogger.js";
+import ApiError from "./exceptions/ApiError.js";
+import { config } from "./config/config.js";
+import Logging from "./library/Logger.js";
 import seedDB from "./seed/mainSeeder.js";
+/**Import routes */
+import authRoutes from "./routes/Auth/Auth.js";
 import articleRoutes from "./routes/Article/Article.js";
 import bannerRoutes from "./routes/Banner/Banner.js";
 import categoryRoutes from "./routes/Category/Category.js";
@@ -33,20 +39,11 @@ mongoose.connect(config.mongo.url, { w: "majority", retryWrites: true })
 
 /** Only start server if Mongo connects */
 const StartServer = () => {
-    router.use((req, res, next) => {
-        /** Log the request */
-        Logging.info(`Incoming -> method: [${req.method}] - Url: [${req.url}] - IP: [${req
-            .socket.remoteAddress}]`);
-        /** Log the response */
-        res.on('finish', () => {
-            Logging.info(`Incoming -> method: [${req.method}] - Url: [${req.url}] - IP: [${req
-                .socket.remoteAddress}] - Status: [${res.statusCode}]`)
-        });
-        next();
-    });
 
     router.use(express.urlencoded({ extended: true }));
     router.use(express.json());
+    router.use(cookieParser());
+    router.use(requestLogger());
 
     /** Api rulles */
     router.use((req, res, next) => {
@@ -62,6 +59,7 @@ const StartServer = () => {
     });
 
     /** Routes */
+    router.use('/auth', authRoutes);
     router.use('/articles', articleRoutes);
     router.use('/banners', bannerRoutes);
     router.use('/categories', categoryRoutes);
@@ -85,11 +83,11 @@ const StartServer = () => {
 
     /** Error handling */
     router.use((req, res, next) => {
-        const error = new Error('not found');
-        Logging.error(error);
-
-        return res.status(404).json({ message: error.message });
+        const err = new Error('404. Not found');
+        Logging.error(err.message);
+        return res.status(404).json({ message: err.message });
     })
+    router.use(errorHandler());
 
     http.createServer(router).listen(config.server.port, () => {
         Logging.info(`Server is running on port: [${config.server.port}]`);

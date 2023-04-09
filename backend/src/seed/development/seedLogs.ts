@@ -1,8 +1,8 @@
 import { faker } from "@faker-js/faker";
-import Logging from "../../library/Logging.js";
+import Logging from "../../library/Logger.js";
 import Log from "../../models/Log.js";
 
-export default async function seedLogs(count: number) : Promise<void> {
+export default async function seedLogs (count: number): Promise<void> {
     try {
         Logging.info("Seeding logs");
         Log.collection.drop();

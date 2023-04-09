@@ -1,59 +1,103 @@
 import { Request, Response, NextFunction } from 'express';
+import ApiError from '../../exceptions/ApiError.js';
+import IHasOwner from '../../models/interfaces/IHasOwner.js';
 import Order from '../../models/Order.js';
+import { checkOwner, checkRoles, checkUser } from '../../services/auth.js';
 
-const createOrder = (req: Request, res: Response, next: NextFunction) => {
+const createOrder = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin', 'shipper', 'support'];
+        const { userId, deliveryMethodId, paymentMethodId } = req.body;
 
-    const { userId, deliveryMethodId, paymentMethodId } = req.body;
-    const order = new Order({ userId, deliveryMethodId, paymentMethodId, status: "pending" });
+        if (await checkRoles(req, roles) || checkUser(req, userId)) {
+            const order = await Order.create({
+                userId,
+                deliveryMethodId,
+                paymentMethodId,
+                status: "pending"
+            });
+            return res.status(201).json({ order });
+        } else {
+            throw ApiError.forbidden();
+        }
 
-    return order.save()
-        .then(order => res.status(201).json({ order }))
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const readOrder = (req: Request, res: Response, next: NextFunction) => {
+const readOrder = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin', 'shipper', 'support'];
+        const { orderId } = req.params;
 
-    const orderId = req.params.orderId;
+        const order = await Order.findById(orderId);
+        if (!order) {
+            throw ApiError.notFound('Order', orderId);
+        }
+        if (await checkRoles(req, roles) || checkOwner(req, order as IHasOwner)) {
+            return res.status(200).json({ order });
+        } else {
+            throw ApiError.forbidden();
+        }
 
-    return Order.findById(orderId)
-        .then(order => order ? res.status(200).json({ order })
-            : res.status(404).json({ message: 'Not found' }))
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const readAllOrderItems = (req: Request, res: Response, next: NextFunction) => {
-    return Order.find()
-        .then(orderItems => res.status(200).json({ orderItems }))
-        .catch(err => res.status(500).json({ err }));
+const readAllOrderItems = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin', 'shipper', 'support'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const orderItems = await Order.find();
+        return res.status(200).json({ orderItems });
+
+    } catch (err) {
+        next(err);
+    }
 }
 
-const updateOrder = (req: Request, res: Response, next: NextFunction) => {
+const updateOrder = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin', 'support'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { orderId } = req.params;
 
-    const orderId = req.params.orderId;
+        const order = await Order.findById(orderId);
+        if (!order) {
+            throw ApiError.notFound('Order', orderId);
+        }
+        order.set(req.body);
+        await order.save();
+        return res.status(200).json({ order });
 
-    return Order.findById(orderId)
-        .then((order) => {
-            if (order) {
-                order.set(req.body);
-
-                return order.save()
-                    .then(order => res.status(200).json({ order }))
-                    .catch(err => res.status(500).json({ err }));
-            } else {
-                return res.status(404).json({ message: 'Not found' });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const deleteOrder = (req: Request, res: Response, next: NextFunction) => {
+const deleteOrder = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin', 'support'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { orderId } = req.params;
 
-    const orderId = req.params.orderId;
+        const order = await Order.findByIdAndDelete(orderId);
+        if (!order) {
+            throw ApiError.notFound('Order', orderId);
+        }
+        return res.status(204).json({ message: 'deleted' });
 
-    return Order.findByIdAndDelete(orderId)
-        .then(order => order ? res.status(204).json({ message: 'deleted' })
-            : res.status(404).json({ message: 'Not found' }))
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
 export default { createOrder, readOrder, readAllOrderItems, updateOrder, deleteOrder }

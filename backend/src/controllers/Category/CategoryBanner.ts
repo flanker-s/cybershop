@@ -1,109 +1,112 @@
 import { Request, Response, NextFunction } from 'express';
 import Category from '../../models/Category.js';
-import { Types } from 'mongoose';
+import ApiError from "../../exceptions/ApiError.js";
+import { checkRoles } from "../../services/auth.js";
 
-const createCategoryBanner = (req: Request, res: Response, next: NextFunction) => {
+const createCategoryBanner = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { categoryId } = req.params;
+        const { name, img, url } = req.body;
+        const category = await Category.findById({ categoryId });
+        if (!category) {
+            throw ApiError.notFound('Category', categoryId);
+        }
+        const categoryBanner = category.categoryBanners.create({
+            name,
+            img,
+            url
+        });
+        await category.save();
+        return res.status(201).json({ categoryBanner });
 
-    const { categoryId } = req.params;
-    const { name, img, url } = req.body;
-    const categoryBanner = {
-        _id: new Types.ObjectId(), //TODO: remove all document explicite id definitions
-        name,
-        img,
-        url
+    } catch (err) {
+        next(err);
     }
-
-    return Category.findOneAndUpdate({ _id: categoryId })
-        .then((category) => {
-            if (category) {
-                const newBanner = category.categoryBanners.create(categoryBanner);
-                return res.status(201).json(newBanner);
-            } else {
-                return res.status(404).json({ message: "Category no found" });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
 }
 
-const readCategoryBanner = (req: Request, res: Response, next: NextFunction) => {
+const readCategoryBanner = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { categoryId, categoryBannerId } = req.params;
+        const category = await Category.findById(categoryId);
+        if (!category) {
+            throw ApiError.notFound('Category', categoryId);
+        }
+        const categoryBanner = category.categoryBanners.id(categoryBannerId);
+        if (!categoryBanner) {
+            throw ApiError.notFound('CategoryBanner', categoryBannerId);
+        }
+        return res.status(200).json({ categoryBanner });
 
-    const { categoryId, categoryBannerId } = req.params;
-
-    return Category.findById(categoryId)
-        .then((category) => {
-            if (category) {
-                const categoryBanner = category.categoryBanners.id(categoryBannerId);
-                if (categoryBanner) {
-                    return res.status(200).json(categoryBanner);
-                } else {
-                    return res.status(404).json({ message: "Category banner not found" });
-                }
-            } else {
-                return res.status(404).json({ message: "Category not found" });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const readAllCategoryBannerItems = (req: Request, res: Response, next: NextFunction) => {
+const readAllCategoryBannerItems = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { categoryId } = req.params;
+        const category = await Category.findById(categoryId);
+        if (!category) {
+            throw ApiError.notFound('Category', categoryId);
+        }
+        const categoryBannerItems = category.categoryBanners;
+        return res.status(200).json({ categoryBannerItems });
 
-    const { categoryId } = req.params;
-
-    return Category.findById(categoryId)
-        .then((category) => {
-            if (category) {
-                const categoryBannerItems = category.categoryBanners;
-                return res.status(200).json({ categoryBannerItems });
-            } else {
-                return res.status(404).json({ message: `Category with an id:${categoryId} not found.` });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const updateCategoryBanner = (req: Request, res: Response, next: NextFunction) => {
+const updateCategoryBanner = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
+        }
+        const { categoryId, categoryBannerId } = req.params;
+        const category = await Category.findById(categoryId);
+        if (!category) {
+            throw ApiError.notFound('Category', categoryId);
+        }
+        const categoryBanner = category.categoryBanners.id(categoryBannerId);
+        if (!categoryBanner) {
+            throw ApiError.notFound('CategoryBanner', categoryBannerId);
+        }
+        categoryBanner.set(req.body);
+        await category.save();
+        return res.status(200).json({ categoryBanner });
 
-    const { categoryId, categoryBannerId } = req.params;
-
-    return Category.findById(categoryId)
-        .then((category) => {
-            if (category) {
-                const categoryBanner = category.categoryBanners.id(categoryBannerId);
-                if (categoryBanner) {
-                    categoryBanner.set(req.body);
-                    return category.save()
-                        .then(() => res.status(200).json(categoryBanner))
-                        .catch((err) => res.status(500).json({ err }));
-                } else {
-                    return res.status(404).json({ message: "Category banner not found" });
-                }
-            } else {
-                return res.status(404).json({ message: "Category not found" });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
-const deleteCategoryBanner = (req: Request, res: Response, next: NextFunction) => {
+const deleteCategoryBanner = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            return res.status(403).json(ApiError.forbidden());
+        }
+        const { categoryId, categoryBannerId } = req.params;
+        const category = await Category.findById(categoryId);
+        if (!category) {
+            throw ApiError.notFound('Category', categoryId);
+        }
+        const categoryBanner = category.categoryBanners.id(categoryBannerId);
+        if (!categoryBanner) {
+            throw ApiError.notFound('CategoryBanner', categoryBannerId);
+        }
+        category.categoryBanners.remove(categoryBannerId);
+        await category.save();
+        return res.status(204).json("deleted");
 
-    const { categoryId, categoryBannerId } = req.params;
-
-    return Category.findOneAndUpdate({ _id: categoryId })
-        .then((category) => {
-            if (category) {
-                const initBannerCount = category.categoryBanners.length;
-                const remainedItems = category.categoryBanners.remove(categoryBannerId);
-
-                if (remainedItems.length !== initBannerCount) {
-                    return res.status(204).json("deleted");
-                } else {
-                    return res.status(404).json({ message: "Category banner not found" });
-                }
-            } else {
-                return res.status(404).json({ message: "Category not found" });
-            }
-        })
-        .catch(err => res.status(500).json({ err }));
+    } catch (err) {
+        next(err);
+    }
 }
 
 export default {
