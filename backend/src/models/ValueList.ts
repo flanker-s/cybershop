@@ -15,7 +15,6 @@ const ValueListSchema: Schema = new Schema(
     {
         name: { type: String, required: true, unique: true },
         options: [{
-            _id: { type: Schema.Types.ObjectId, required: true },
             value: { type: String, required: true, unique: true }
         }]
     },

@@ -1,6 +1,5 @@
 import Category from "../../models/Category.js";
 import { faker } from "@faker-js/faker";
-import mongoose from "mongoose";
 import ValueList, { IValueListModel } from "../../models/ValueList.js";
 import Logging from "../../library/Logger.js";
 
@@ -29,29 +28,24 @@ async function createCategoriesRecursive (node: { [key: string]: any }, parentId
                 parentId: parentId,
                 categoryBanners: [
                     {
-                        _id: new mongoose.Types.ObjectId(),
                         name: faker.word.noun(),
                         img: faker.image.imageUrl()
                     },
                     {
-                        _id: new mongoose.Types.ObjectId(),
                         name: faker.word.noun(),
                         img: faker.image.imageUrl()
                     }
                 ],
                 features: [
                     {
-                        _id: new mongoose.Types.ObjectId(),
                         name: faker.word.noun(),
                         attributes: [
                             {
-                                _id: new mongoose.Types.ObjectId(),
                                 name: faker.word.noun(),
                                 type: "reference",
                                 valueListId: valueList._id
                             },
                             {
-                                _id: new mongoose.Types.ObjectId(),
                                 name: faker.word.noun(),
                                 type: "string"
                             }

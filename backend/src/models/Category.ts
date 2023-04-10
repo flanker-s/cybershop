@@ -35,16 +35,13 @@ const CategorySchema: Schema = new Schema(
         name: { type: String, required: true },
         icon: { type: String },
         categoryBanners: [{
-            _id: { type: Types.ObjectId, required: true },
             name: { type: String, required: true },
             img: { type: String, required: true },
             url: { type: String }
         }],
         features: [{
-            _id: { type: Types.ObjectId, required: true },
             name: { type: String, unique: true, required: true },
             attributes: [{
-                _id: { type: Types.ObjectId, required: true },
                 name: { type: String, required: true },
                 type: { type: String, required: true },
                 valueListId: { type: Types.ObjectId, ref: "ValueList" }
