@@ -17,6 +17,7 @@ const createChatMessage = async (req: Request, res: Response, next: NextFunction
             userId: getCurrentUser(req).id,
             text
         });
+        chat.messages.push(message);
         if (await checkRoles(req, roles) || await checkOwner(req, message as IHasOwner)) {
             await chat.save();
             return res.status(201).json(message);

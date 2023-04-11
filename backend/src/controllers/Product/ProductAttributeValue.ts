@@ -21,7 +21,7 @@ const createProductAttributeValue = async (req: Request, res: Response, next: Ne
         if (!product) {
             throw ApiError.notFound('Product', productId);
         }
-        const attributeValue = await product.attributeValues.create({
+        const attributeValue = await product.attributeValues.push({
             attributeId,
             value
         });

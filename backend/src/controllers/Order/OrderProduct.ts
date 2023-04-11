@@ -25,7 +25,7 @@ const createOrderProduct = async (req: Request, res: Response, next: NextFunctio
             throw ApiError.notFound('Product', productId);
         }
         if (await checkRoles(req, roles) || checkOwner(req, order as IHasOwner)) {
-            const orderProduct = order.orderProducts.create({
+            const orderProduct = order.orderProducts.push({
                 productId: product._id,
                 price: product.price
             });

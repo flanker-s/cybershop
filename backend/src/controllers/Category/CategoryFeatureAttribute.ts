@@ -25,7 +25,7 @@ const createCategoryFeatureAttribute = async (req: Request, res: Response, next:
             throw ApiError.notFound('Feature', featureId);
         }
         const attributeData = { name, type, valueListId: type === "reference" ? valueListId : null };
-        const attribute = feature.attributes.create(attributeData);
+        const attribute = feature.attributes.push(attributeData);
         if (type === "reference" && !valueListId) {
             throw ApiError.badRequest("The 'valueListId' field is required");
         }

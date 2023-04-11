@@ -20,9 +20,10 @@ const createOption = async (req: Request, res: Response, next: NextFunction) => 
         if (!valueList) {
             throw ApiError.notFound('ValueList', valueListId);
         }
-        const option = valueList.options.create({
+        const option = valueList.options.push({
             value
         });
+        await valueList.save();
         return res.status(201).json({ option });
 
     } catch (err) {

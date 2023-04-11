@@ -20,7 +20,7 @@ const createDayOfWork = async (req: Request, res: Response, next: NextFunction) 
         if (!shop) {
             throw ApiError.notFound('Shop', shopId);
         }
-        const dayOfWork = shop.daysOfWork.create({
+        const dayOfWork = shop.daysOfWork.push({
             name,
             hours
         });

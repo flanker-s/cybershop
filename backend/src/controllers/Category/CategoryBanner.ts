@@ -3,7 +3,7 @@ import Category from '../../models/Category.js';
 import ApiError from "../../exceptions/ApiError.js";
 import { checkRoles } from "../../services/auth.js";
 import { validationResult } from 'express-validator';
-//TODO: fix subdocuments creation
+
 const createCategoryBanner = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const roles = ['admin', 'contentManager'];
@@ -20,7 +20,7 @@ const createCategoryBanner = async (req: Request, res: Response, next: NextFunct
         if (!category) {
             throw ApiError.notFound('Category', categoryId);
         }
-        const categoryBanner = category.categoryBanners.create({
+        const categoryBanner = category.categoryBanners.push({
             name,
             img,
             url

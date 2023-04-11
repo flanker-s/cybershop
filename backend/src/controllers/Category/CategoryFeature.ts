@@ -20,7 +20,7 @@ const createCategoryFeature = async (req: Request, res: Response, next: NextFunc
         if (!category) {
             throw ApiError.notFound('Category', categoryId);
         }
-        const feature = category.features.create({ name });
+        const feature = category.features.push({ name });
         await category.save();
         return res.status(201).json(feature)
 

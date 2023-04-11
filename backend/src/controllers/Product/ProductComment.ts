@@ -18,7 +18,7 @@ const createProductComment = async (req: Request, res: Response, next: NextFunct
         if (!product) {
             throw ApiError.notFound('Product', productId);
         }
-        const productComment = product.productComments.create({
+        const productComment = product.productComments.push({
             userId: getCurrentUser(req).id,
             rating,
             text
