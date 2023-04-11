@@ -6,13 +6,13 @@ import { validationResult } from 'express-validator';
 
 const createPaymentMethod = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const roles = ['admin'];
-        if (!await checkRoles(req, roles)) {
-            throw ApiError.forbidden();
-        }
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             throw ApiError.badRequest('Validation error', errors.array());
+        }
+        const roles = ['admin'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
         }
         const { name } = req.body;
         const paymentMethod = await PaymentMethod.create({ name });
@@ -49,13 +49,13 @@ const readAllPaymentMethodItems = async (req: Request, res: Response, next: Next
 
 const updatePaymentMethod = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const roles = ['admin'];
-        if (!await checkRoles(req, roles)) {
-            throw ApiError.forbidden();
-        }
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             throw ApiError.badRequest('Validation error', errors.array());
+        }
+        const roles = ['admin'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
         }
         const { paymentMethodId } = req.params;
         const paymentMethod = await PaymentMethod.findById(paymentMethodId);

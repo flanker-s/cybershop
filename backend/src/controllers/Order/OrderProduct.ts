@@ -8,11 +8,11 @@ import { validationResult } from 'express-validator';
 
 const createOrderProduct = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const roles = ['admin', 'shipper', 'support'];
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             throw ApiError.badRequest('Validation error', errors.array());
         }
+        const roles = ['admin', 'shipper', 'support'];
         const { orderId } = req.params;
         const { productId } = req.body;
 
@@ -86,12 +86,11 @@ const readAllOrderProductItems = async (req: Request, res: Response, next: NextF
 
 const updateOrderProduct = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const roles = ['admin', 'shipper', 'support'];
-
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             throw ApiError.badRequest('Validation error', errors.array());
         }
+        const roles = ['admin', 'shipper', 'support'];
         const { orderId, orderProductId } = req.params;
 
         const order = await Order.findById(orderId);

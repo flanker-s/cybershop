@@ -6,13 +6,13 @@ import { validationResult } from 'express-validator';
 
 const createProductAttributeValue = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const roles = ['admin', 'contentManager'];
-        if (!await checkRoles(req, roles)) {
-            throw ApiError.forbidden();
-        }
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             throw ApiError.badRequest('Validation error', errors.array());
+        }
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
         }
         const { productId } = req.params;
         const { attributeId, value } = req.body;
@@ -68,13 +68,13 @@ const readAllProductAttributeValueItems = async (req: Request, res: Response, ne
 
 const updateProductAttributeValue = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const roles = ['admin', 'contentManager'];
-        if (!await checkRoles(req, roles)) {
-            throw ApiError.forbidden();
-        }
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             throw ApiError.badRequest('Validation error', errors.array());
+        }
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
         }
         const { productId, attributeValueId } = req.params;
         const product = await Product.findById(productId);

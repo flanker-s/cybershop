@@ -6,13 +6,13 @@ import { validationResult } from 'express-validator';
 
 const createShowcase = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const roles = ['admin'];
-        if (!await checkRoles(req, roles)) {
-            throw ApiError.forbidden();
-        }
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             throw ApiError.badRequest('Validation error', errors.array());
+        }
+        const roles = ['admin'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
         }
         const { name } = req.body;
         const showcase = await Showcase.create({ name });
@@ -48,13 +48,13 @@ const readAllShowcaseItems = async (req: Request, res: Response, next: NextFunct
 
 const updateShowcase = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const roles = ['admin'];
-        if (!await checkRoles(req, roles)) {
-            throw ApiError.forbidden();
-        }
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             throw ApiError.badRequest('Validation error', errors.array());
+        }
+        const roles = ['admin'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
         }
         const { showcaseId } = req.params;
         const showcase = await Showcase.findById(showcaseId);

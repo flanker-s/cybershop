@@ -6,13 +6,13 @@ import { validationResult } from 'express-validator';
 
 const createBanner = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const roles = ['admin', 'contentManager'];
-        if (!await checkRoles(req, roles)) {
-            throw ApiError.forbidden();
-        }
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             throw ApiError.badRequest('Validation error', errors.array());
+        }
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
         }
         const { name, img, url, template } = req.body;
         const banner = await Banner.create({ name, img, url, template });
@@ -49,14 +49,14 @@ const readAllBannerItems = async (req: Request, res: Response, next: NextFunctio
 
 const updateBanner = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
+        }
         const roles = ['admin', 'contentManager'];
         if (!await checkRoles(req, roles)) {
             throw ApiError.forbidden();
         }
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            throw ApiError.badRequest('Validation error', errors.array());
-        };
         const { bannerId } = req.params;
         const banner = await Banner.findById(bannerId);
         if (!banner) {

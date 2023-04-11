@@ -7,12 +7,11 @@ import { validationResult } from 'express-validator';
 
 const createOrder = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const roles = ['admin', 'shipper', 'support'];
-
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             throw ApiError.badRequest('Validation error', errors.array());
         }
+        const roles = ['admin', 'shipper', 'support'];
         const { userId, deliveryMethodId, paymentMethodId } = req.body;
 
         if (await checkRoles(req, roles) || checkUser(req, userId)) {
@@ -68,13 +67,13 @@ const readAllOrderItems = async (req: Request, res: Response, next: NextFunction
 
 const updateOrder = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const roles = ['admin', 'support'];
-        if (!await checkRoles(req, roles)) {
-            throw ApiError.forbidden();
-        }
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             throw ApiError.badRequest('Validation error', errors.array());
+        }
+        const roles = ['admin', 'support'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
         }
         const { orderId } = req.params;
 

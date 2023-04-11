@@ -13,12 +13,12 @@ import { validationResult } from 'express-validator';
 
 //TODO: review this controller
 const register = async (req: Request, res: Response, next: NextFunction) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        throw ApiError.badRequest('Validation error', errors.array());
-    };
-    const { name, email, password, phone } = req.body;
     try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
+        }
+        const { name, email, password, phone } = req.body;
         const role = await Role.findOne({ name: 'customer' });
         if (!role) {
             throw new Error('Role not found');
@@ -56,7 +56,7 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             throw ApiError.badRequest('Validation error', errors.array());
-        };
+        }
         const { email, password } = req.body;
 
         const user = await User.findOne({ email });

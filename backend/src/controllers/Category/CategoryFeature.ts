@@ -6,13 +6,13 @@ import { validationResult } from 'express-validator';
 
 const createCategoryFeature = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const roles = ['admin', 'contentManager'];
-        if (!await checkRoles(req, roles)) {
-            throw ApiError.forbidden();
-        }
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             throw ApiError.badRequest('Validation error', errors.array());
+        }
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
         }
         const { categoryId } = req.params;
         const { name } = req.body;
@@ -64,13 +64,13 @@ const readAllCategoryFeatureItems = async (req: Request, res: Response, next: Ne
 
 const updateCategoryFeature = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const roles = ['admin', 'contentManager'];
-        if (!await checkRoles(req, roles)) {
-            throw ApiError.forbidden();
-        }
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             throw ApiError.badRequest('Validation error', errors.array());
+        }
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
         }
         const { categoryId, featureId } = req.params;
         const category = await Category.findById(categoryId);

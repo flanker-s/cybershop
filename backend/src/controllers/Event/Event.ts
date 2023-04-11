@@ -6,13 +6,13 @@ import { validationResult } from 'express-validator';
 
 const createEvent = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const roles = ['admin', 'contentManager'];
-        if (!await checkRoles(req, roles)) {
-            throw ApiError.forbidden();
-        }
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             throw ApiError.badRequest('Validation error', errors.array());
+        }
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
         }
         const { name, img, url, text } = req.body;
 
@@ -55,7 +55,6 @@ const updateEvent = async (req: Request, res: Response, next: NextFunction) => {
             throw ApiError.badRequest('Validation error', errors.array());
         }
         const { eventId } = req.params;
-
         const event = await Event.findById(eventId);
         if (!event) {
             throw ApiError.notFound('Event', eventId);

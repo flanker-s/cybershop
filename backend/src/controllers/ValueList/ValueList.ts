@@ -6,13 +6,13 @@ import { validationResult } from 'express-validator';
 
 const createValueList = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const roles = ['admin', 'contentManager'];
-        if (!await checkRoles(req, roles)) {
-            throw ApiError.forbidden();
-        }
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             throw ApiError.badRequest('Validation error', errors.array());
+        }
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
         }
         const { name } = req.body;
         const valueList = await ValueList.create({ name });
@@ -57,13 +57,13 @@ const readAllValueListItems = async (req: Request, res: Response, next: NextFunc
 
 const updateValueList = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const roles = ['admin', 'contentManager'];
-        if (!await checkRoles(req, roles)) {
-            throw ApiError.forbidden();
-        }
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             throw ApiError.badRequest('Validation error', errors.array());
+        }
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
         }
         const { valueListId } = req.params;
         const valueList = await ValueList.findById(valueListId);

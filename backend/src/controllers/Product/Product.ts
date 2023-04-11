@@ -6,13 +6,13 @@ import { validationResult } from 'express-validator';
 
 const createProduct = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const roles = ['admin', 'contentManager'];
-        if (!await checkRoles(req, roles)) {
-            throw ApiError.forbidden();
-        }
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             throw ApiError.badRequest('Validation error', errors.array());
+        }
+        const roles = ['admin', 'contentManager'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
         }
         const { name, preview, price, status } = req.body;
         const product = await Product.create({ name, preview, price, status });
@@ -50,14 +50,14 @@ const readAllProductItems = async (req: Request, res: Response, next: NextFuncti
 
 const updateProduct = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
+        }
         const roles = ['admin', 'contentManager'];
         const { productId } = req.params;
         if (!await checkRoles(req, roles)) {
             throw ApiError.forbidden();
-        }
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            throw ApiError.badRequest('Validation error', errors.array());
         }
         const product = await Product.findById(productId);
         if (!product) {

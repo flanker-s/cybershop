@@ -3,9 +3,14 @@ import Chat from '../../models/Chat.js';
 import ApiError from "../../exceptions/ApiError.js";
 import { checkOwner, checkRoles, getCurrentUser } from "../../services/auth.js";
 import IHasOwner from '../../models/interfaces/IHasOwner.js';
+import { validationResult } from 'express-validator';
 
 const createChatMessage = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
+        }
         const roles = ['admin', 'shipper', 'support'];
         const { chatId } = req.params;
         const { text } = req.body;
@@ -78,9 +83,12 @@ const readAllChatMessageItems = async (req: Request, res: Response, next: NextFu
 
 const updateChatMessage = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
+        }
         const roles = ['admin'];
         const { chatId, messageId } = req.params;
-
         const chat = await Chat.findById(chatId);
         if (!chat) {
             throw ApiError.notFound('Chat', chatId);

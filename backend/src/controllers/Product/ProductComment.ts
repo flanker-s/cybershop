@@ -66,11 +66,11 @@ const readAllProductCommentItems = async (req: Request, res: Response, next: Nex
 
 const updateProductComment = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const roles = ['admin'];
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             throw ApiError.badRequest('Validation error', errors.array());
         }
+        const roles = ['admin'];
         const { productId, productCommentId } = req.params;
         const product = await Product.findById(productId);
         if (!product) {

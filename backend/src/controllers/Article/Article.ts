@@ -6,14 +6,14 @@ import { validationResult } from "express-validator";
 
 const createArticle = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
+        }
         const roles = ['admin', 'contentManager'];
         if (!await checkRoles(req, roles)) {
             throw ApiError.forbidden();
         }
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            throw ApiError.badRequest('Validation error', errors.array());
-        };
         const { name, img, text } = req.body;
         const article = await Article.create({ name, img, text });
         return res.status(201).json({ article });
@@ -48,14 +48,14 @@ const readAllArticleItems = async (req: Request, res: Response, next: NextFuncti
 
 const updateArticle = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
+        }
         const roles = ['admin', 'contentManager'];
         if (!await checkRoles(req, roles)) {
             throw ApiError.forbidden();
         }
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            throw ApiError.badRequest('Validation error', errors.array());
-        };
         const { articleId } = req.params;
         const article = await Article.findById(articleId)
         if (!article) {

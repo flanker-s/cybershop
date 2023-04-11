@@ -6,13 +6,13 @@ import { validationResult } from 'express-validator';
 
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const roles = ['admin'];
-        if (!await checkRoles(req, roles)) {
-            throw ApiError.forbidden();
-        }
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             throw ApiError.badRequest('Validation error', errors.array());
+        }
+        const roles = ['admin'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
         }
         const { name, password, phone, email, address, roleId } = req.body;
         const user = await User.create({
@@ -66,13 +66,13 @@ const readAllUserItems = async (req: Request, res: Response, next: NextFunction)
 
 const updateUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const roles = ['admin'];
-        if (!await checkRoles(req, roles)) {
-            throw ApiError.forbidden();
-        }
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             throw ApiError.badRequest('Validation error', errors.array());
+        }
+        const roles = ['admin'];
+        if (!await checkRoles(req, roles)) {
+            throw ApiError.forbidden();
         }
         const { userId } = req.params;
         const user = await User.findById(userId);
