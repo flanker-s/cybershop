@@ -1,5 +1,4 @@
 import { config } from "../config/config.js";
-import Logging from "../library/Logger.js";
 import jwt from "jsonwebtoken";
 import Role from "../models/Role.js";
 import { IUserPayload } from "../services/token.js";
@@ -7,7 +6,7 @@ import IHasOwner from "../models/interfaces/IHasOwner.js";
 import { Request } from "express";
 
 const checkRoles = async (req: Request, roles: string[]): Promise<boolean> => {
-    Logging.info(req.cookies.accessToken);
+
     const { accessToken } = req.cookies;
     if (accessToken) {
         const userData = getCurrentUser(req);

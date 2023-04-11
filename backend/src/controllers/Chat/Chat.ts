@@ -48,26 +48,6 @@ const readAllChatItems = async (req: Request, res: Response, next: NextFunction)
     }
 }
 
-const updateChat = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const roles = ['admin'];
-        if (!await checkRoles(req, roles)) {
-            throw ApiError.forbidden();
-        }
-        const chatId = req.params.chatId;
-        const chat = await Chat.findById(chatId);
-        if (!chat) {
-            throw ApiError.notFound('Chat', chatId);
-        }
-        chat.set(req.body);
-        await chat.save();
-        return res.status(200).json({ chat });
-
-    } catch (err) {
-        next(err);
-    }
-}
-
 const deleteChat = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const roles = ['admin'];
@@ -86,4 +66,4 @@ const deleteChat = async (req: Request, res: Response, next: NextFunction) => {
     }
 }
 
-export default { createChat, readChat, readAllChatItems, updateChat, deleteChat }
+export default { createChat, readChat, readAllChatItems, deleteChat }

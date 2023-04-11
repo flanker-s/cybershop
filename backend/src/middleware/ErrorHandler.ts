@@ -6,10 +6,15 @@ const handleError = () => {
     return (err: Error, req: Request, res: Response, next: NextFunction) => {
 
         if (err instanceof ApiError) {
-            return res.status(err.status).json({ message: err.message });
+            return res.status(err.status).json({
+                message: err.message,
+                errors: err.errors
+            });
         } else {
             Logging.error(err.message);
-            return res.status(500).json({ messages: 'Internal server error' });
+            return res.status(500).json({
+                messages: 'Internal server error'
+            });
         }
     }
 }

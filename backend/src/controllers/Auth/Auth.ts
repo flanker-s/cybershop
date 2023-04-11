@@ -9,12 +9,15 @@ import { config } from '../../config/config.js';
 import bcrypt from "bcrypt";
 import Token from '../../models/Token.js';
 import ApiError from '../../exceptions/ApiError.js';
+import { validationResult } from 'express-validator';
 
 //TODO: review this controller
 const register = async (req: Request, res: Response, next: NextFunction) => {
-
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        throw ApiError.badRequest('Validation error', errors.array());
+    };
     const { name, email, password, phone } = req.body;
-
     try {
         const role = await Role.findOne({ name: 'customer' });
         if (!role) {
@@ -50,6 +53,10 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
 
 const login = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
+        };
         const { email, password } = req.body;
 
         const user = await User.findOne({ email });

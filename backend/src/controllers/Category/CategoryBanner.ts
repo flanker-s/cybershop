@@ -2,12 +2,17 @@ import { Request, Response, NextFunction } from 'express';
 import Category from '../../models/Category.js';
 import ApiError from "../../exceptions/ApiError.js";
 import { checkRoles } from "../../services/auth.js";
-
+import { validationResult } from 'express-validator';
+//TODO: fix subdocuments creation
 const createCategoryBanner = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const roles = ['admin', 'contentManager'];
         if (!await checkRoles(req, roles)) {
             throw ApiError.forbidden();
+        }
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
         }
         const { categoryId } = req.params;
         const { name, img, url } = req.body;
@@ -66,6 +71,10 @@ const updateCategoryBanner = async (req: Request, res: Response, next: NextFunct
         const roles = ['admin', 'contentManager'];
         if (!await checkRoles(req, roles)) {
             throw ApiError.forbidden();
+        }
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
         }
         const { categoryId, categoryBannerId } = req.params;
         const category = await Category.findById(categoryId);

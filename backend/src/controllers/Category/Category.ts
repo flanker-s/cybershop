@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import Category from '../../models/Category.js';
 import ApiError from "../../exceptions/ApiError.js";
 import { checkRoles } from "../../services/auth.js";
+import { validationResult } from 'express-validator';
 
 const createCategory = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -9,8 +10,12 @@ const createCategory = async (req: Request, res: Response, next: NextFunction) =
         if (!await checkRoles(req, roles)) {
             throw ApiError.forbidden();
         }
-        const { name, icon } = req.body;
-        const category = await Category.create({ name, icon });
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
+        }
+        const { name, icon, parentId } = req.body;
+        const category = await Category.create({ name, icon, parentId });
         return res.status(201).json({ category });
 
     } catch (err) {
@@ -47,6 +52,10 @@ const updateCategory = async (req: Request, res: Response, next: NextFunction) =
         const roles = ['admin'];
         if (!await checkRoles(req, roles)) {
             throw ApiError.forbidden();
+        }
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
         }
         const { categoryId } = req.params;
         const category = await Category.findById(categoryId);

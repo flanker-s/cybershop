@@ -1,15 +1,17 @@
 export default class ApiError extends Error {
     status: number;
     message: string;
+    errors: object;
 
-    constructor(status: number, message: string) {
+    constructor(status: number, message: string, errors: object = {}) {
         super(message);
         this.status = status;
         this.message = message;
+        this.errors = errors;
     }
 
-    static badRequest = (message: string = '') => {
-        return new ApiError(400, 'Bad request. ' + message);
+    static badRequest = (message: string = '', errors: object = {}) => {
+        return new ApiError(400, 'Bad request. ' + message, errors);
     }
     static unauthorized = () => {
         return new ApiError(401, 'Unauthorized');

@@ -2,12 +2,17 @@ import { Request, Response, NextFunction } from 'express';
 import ApiError from '../../exceptions/ApiError.js';
 import User from '../../models/User.js';
 import { checkRoles } from '../../services/auth.js';
+import { validationResult } from 'express-validator';
 
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const roles = ['admin'];
         if (!await checkRoles(req, roles)) {
             throw ApiError.forbidden();
+        }
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
         }
         const { name, password, phone, email, address, roleId } = req.body;
         const user = await User.create({
@@ -64,6 +69,10 @@ const updateUser = async (req: Request, res: Response, next: NextFunction) => {
         const roles = ['admin'];
         if (!await checkRoles(req, roles)) {
             throw ApiError.forbidden();
+        }
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
         }
         const { userId } = req.params;
         const user = await User.findById(userId);

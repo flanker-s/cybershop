@@ -2,12 +2,17 @@ import { Request, Response, NextFunction } from 'express';
 import ApiError from '../../exceptions/ApiError.js';
 import PaymentMethod from '../../models/PaymentMethod.js';
 import { checkRoles } from '../../services/auth.js';
+import { validationResult } from 'express-validator';
 
 const createPaymentMethod = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const roles = ['admin'];
         if (!await checkRoles(req, roles)) {
             throw ApiError.forbidden();
+        }
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
         }
         const { name } = req.body;
         const paymentMethod = await PaymentMethod.create({ name });
@@ -47,6 +52,10 @@ const updatePaymentMethod = async (req: Request, res: Response, next: NextFuncti
         const roles = ['admin'];
         if (!await checkRoles(req, roles)) {
             throw ApiError.forbidden();
+        }
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
         }
         const { paymentMethodId } = req.params;
         const paymentMethod = await PaymentMethod.findById(paymentMethodId);

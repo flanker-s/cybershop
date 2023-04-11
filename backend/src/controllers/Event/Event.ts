@@ -2,12 +2,17 @@ import { Request, Response, NextFunction } from 'express';
 import ApiError from '../../exceptions/ApiError.js';
 import Event from '../../models/Event.js';
 import { checkRoles } from '../../services/auth.js';
+import { validationResult } from 'express-validator';
 
 const createEvent = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const roles = ['admin', 'contentManager'];
         if (!await checkRoles(req, roles)) {
             throw ApiError.forbidden();
+        }
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
         }
         const { name, img, url, text } = req.body;
 
@@ -45,6 +50,10 @@ const readAllEventItems = async (req: Request, res: Response, next: NextFunction
 
 const updateEvent = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
+        }
         const { eventId } = req.params;
 
         const event = await Event.findById(eventId);

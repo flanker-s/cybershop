@@ -3,9 +3,14 @@ import ApiError from '../../exceptions/ApiError.js';
 import IHasOwner from '../../models/interfaces/IHasOwner.js';
 import Product from '../../models/Product.js';
 import { checkOwner, checkRoles, getCurrentUser } from '../../services/auth.js';
+import { validationResult } from 'express-validator';
 
 const createProductComment = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
+        }
         const { productId } = req.params;
         const { rating, text } = req.body;
 
@@ -62,6 +67,10 @@ const readAllProductCommentItems = async (req: Request, res: Response, next: Nex
 const updateProductComment = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const roles = ['admin'];
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
+        }
         const { productId, productCommentId } = req.params;
         const product = await Product.findById(productId);
         if (!product) {

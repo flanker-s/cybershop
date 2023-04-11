@@ -2,12 +2,17 @@ import { Request, Response, NextFunction } from 'express';
 import ApiError from '../../exceptions/ApiError.js';
 import Showcase from '../../models/Showcase.js';
 import { checkRoles } from '../../services/auth.js';
+import { validationResult } from 'express-validator';
 
 const createShowcase = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const roles = ['admin'];
         if (!await checkRoles(req, roles)) {
             throw ApiError.forbidden();
+        }
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
         }
         const { name } = req.body;
         const showcase = await Showcase.create({ name });
@@ -46,6 +51,10 @@ const updateShowcase = async (req: Request, res: Response, next: NextFunction) =
         const roles = ['admin'];
         if (!await checkRoles(req, roles)) {
             throw ApiError.forbidden();
+        }
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
         }
         const { showcaseId } = req.params;
         const showcase = await Showcase.findById(showcaseId);

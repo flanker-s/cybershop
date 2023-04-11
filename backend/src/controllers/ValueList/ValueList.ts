@@ -2,12 +2,17 @@ import { Request, Response, NextFunction } from 'express';
 import ApiError from '../../exceptions/ApiError.js';
 import ValueList from '../../models/ValueList.js';
 import { checkRoles } from '../../services/auth.js';
+import { validationResult } from 'express-validator';
 
 const createValueList = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const roles = ['admin', 'contentManager'];
         if (!await checkRoles(req, roles)) {
             throw ApiError.forbidden();
+        }
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
         }
         const { name } = req.body;
         const valueList = await ValueList.create({ name });
@@ -55,6 +60,10 @@ const updateValueList = async (req: Request, res: Response, next: NextFunction) 
         const roles = ['admin', 'contentManager'];
         if (!await checkRoles(req, roles)) {
             throw ApiError.forbidden();
+        }
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
         }
         const { valueListId } = req.params;
         const valueList = await ValueList.findById(valueListId);

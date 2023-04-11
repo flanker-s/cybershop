@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import Article from "../../models/Article.js";
 import ApiError from "../../exceptions/ApiError.js";
 import { checkRoles } from "../../services/auth.js";
+import { validationResult } from "express-validator";
 
 const createArticle = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -9,6 +10,10 @@ const createArticle = async (req: Request, res: Response, next: NextFunction) =>
         if (!await checkRoles(req, roles)) {
             throw ApiError.forbidden();
         }
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
+        };
         const { name, img, text } = req.body;
         const article = await Article.create({ name, img, text });
         return res.status(201).json({ article });
@@ -47,6 +52,10 @@ const updateArticle = async (req: Request, res: Response, next: NextFunction) =>
         if (!await checkRoles(req, roles)) {
             throw ApiError.forbidden();
         }
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
+        };
         const { articleId } = req.params;
         const article = await Article.findById(articleId)
         if (!article) {

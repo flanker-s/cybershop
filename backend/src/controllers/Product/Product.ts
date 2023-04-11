@@ -2,12 +2,17 @@ import { Request, Response, NextFunction } from 'express';
 import ApiError from '../../exceptions/ApiError.js';
 import Product from '../../models/Product.js';
 import { checkRoles } from '../../services/auth.js';
+import { validationResult } from 'express-validator';
 
 const createProduct = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const roles = ['admin', 'contentManager'];
         if (!await checkRoles(req, roles)) {
             throw ApiError.forbidden();
+        }
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
         }
         const { name, preview, price, status } = req.body;
         const product = await Product.create({ name, preview, price, status });
@@ -49,6 +54,10 @@ const updateProduct = async (req: Request, res: Response, next: NextFunction) =>
         const { productId } = req.params;
         if (!await checkRoles(req, roles)) {
             throw ApiError.forbidden();
+        }
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
         }
         const product = await Product.findById(productId);
         if (!product) {

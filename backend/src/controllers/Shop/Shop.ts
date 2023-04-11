@@ -2,11 +2,16 @@ import { Request, Response, NextFunction } from 'express';
 import ApiError from '../../exceptions/ApiError.js';
 import Shop from '../../models/Shop.js';
 import { checkRoles } from '../../services/auth.js';
+import { validationResult } from 'express-validator';
 
 const createShop = async (req: Request, res: Response, next: NextFunction) => {
     const roles = ['admin'];
     if (!await checkRoles(req, roles)) {
         throw ApiError.forbidden();
+    }
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        throw ApiError.badRequest('Validation error', errors.array());
     }
     try {
         const { name } = req.body;
@@ -47,6 +52,10 @@ const updateShop = async (req: Request, res: Response, next: NextFunction) => {
         const roles = ['admin'];
         if (!await checkRoles(req, roles)) {
             throw ApiError.forbidden();
+        }
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
         }
         const { shopId } = req.params;
         const shop = await Shop.findById(shopId);

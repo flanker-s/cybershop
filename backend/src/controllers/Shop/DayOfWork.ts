@@ -2,12 +2,17 @@ import { Request, Response, NextFunction } from 'express';
 import ApiError from '../../exceptions/ApiError.js';
 import Shop from '../../models/Shop.js';
 import { checkRoles } from '../../services/auth.js';
+import { validationResult } from 'express-validator';
 
 const createDayOfWork = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const roles = ['admin'];
         if (!await checkRoles(req, roles)) {
             throw ApiError.forbidden();
+        }
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
         }
         const { shopId } = req.params;
         const { name, hours } = req.body;
@@ -65,6 +70,10 @@ const updateDayOfWork = async (req: Request, res: Response, next: NextFunction) 
         const roles = ['admin'];
         if (!await checkRoles(req, roles)) {
             throw ApiError.forbidden();
+        }
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            throw ApiError.badRequest('Validation error', errors.array());
         }
         const { shopId, dayOfWorkId } = req.params;
         const shop = await Shop.findById(shopId);

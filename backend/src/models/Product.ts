@@ -19,7 +19,7 @@ export interface IProduct {
     status: string,
     description: string,
     categoryId: Types.ObjectId,
-    color: string,
+    colorId: Types.ObjectId,
     attributeValues: Types.DocumentArray<IAttributeValue>,
     review: string,
     productComments: Types.DocumentArray<IProductComment>
